@@ -1,16 +1,29 @@
 R is better than python for DS
 ================
 Iyar Lin
-13 April, 2021
+20 April, 2021
 
   - [First off - feel free to
     contribute\!](#first-off---feel-free-to-contribute)
   - [Motivation](#motivation)
-  - [Aggregation in dplyr is way more intuitive than
-    pandas](#aggregation-in-dplyr-is-way-more-intuitive-than-pandas)
+  - [dplyr is way better than pandas](#dplyr-is-way-better-than-pandas)
+      - [pandas is missing variable
+        autocompletion](#pandas-is-missing-variable-autocompletion)
+      - [Aggregation in dplyr is way more intuitive than
+        pandas](#aggregation-in-dplyr-is-way-more-intuitive-than-pandas)
+      - [Window functions in dplyr are way better than in
+        pandas](#window-functions-in-dplyr-are-way-better-than-in-pandas)
+      - [pandas case when is annoying](#pandas-case-when-is-annoying)
+  - [Rstudio is way better than jupyter
+    notebooks](#rstudio-is-way-better-than-jupyter-notebooks)
+      - [Code autocompletion in Rstudio is way better than jupyter
+        notebooks](#code-autocompletion-in-rstudio-is-way-better-than-jupyter-notebooks)
+  - [python has no formula interface for
+    models](#python-has-no-formula-interface-for-models)
   - [python has no list equivalent
     class](#python-has-no-list-equivalent-class)
   - [List backlog](#list-backlog)
+  - [Markdown Editor](#markdown-editor)
 
 <br>
 
@@ -69,7 +82,37 @@ limitations) but I believe that R is still the better choice in the vast
 majority of cases. At any rate it’s worth being aware of what you lose
 when choosing python over R.
 
-# Aggregation in dplyr is way more intuitive than pandas
+# dplyr is way better than pandas
+
+Many popularity comparisons show stackoverflow questions to indicate
+that pandas popularity is growing much faster than dplyr. I think that
+at least some of the increase in pandas questions has to do with how
+confusing pandas is to all those new comers. I hope by the end of this
+section you’ll find merit in my hypothesis.
+
+![pandas vs dplyr questions on stack
+overflow](stuff/Screen%20Shot%202021-04-18%20at%2021.44.41.png)
+
+## pandas is missing variable autocompletion
+
+In dplyr data masking enables you to have variable completion when
+writing your code. See below how that looks like:
+
+![autocompletion](stuff/autocompletion.gif)
+
+In pandas you can get variable autcompletion in some cases (e.g. when
+calling series as a method of a DataFrame) but in many cases you don’t.
+For example when selecting DataFrame columns by name you pass a list of
+variable name strings:
+
+``` python
+iris2 = iris[['Species', 'Sepal.Length']]
+```
+
+Another example is when using the query method to filter you pass
+strings, so no variable autocompletion.
+
+## Aggregation in dplyr is way more intuitive than pandas
 
 We’ll start with a simple example: calculate the mean Sepal length
 within each species in the iris dataset.
@@ -117,6 +160,10 @@ sepal_length_to_width_ratio <- iris %>%
   summarize(weighted_mean_length = weighted.mean(Sepal.Length, Sepal.Width))
 ```
 
+We naturally just added an argument column to the weighted mean
+function.
+
+In pandas it’s not so simple. One can’t just tweak the above examples.
 To come up with a pandas version I had to search stackoverflow and based
 on [this](https://stackoverflow.com/a/10964938/5472037) and
 [this](https://stackoverflow.com/a/47103408/5472037) answers I got:
@@ -136,11 +183,76 @@ sepal_length_to_width_ratio = (
 )
 ```
 
-We can see that: 1. We have to define a custom function, and it can’t
-even work for general inputs  
-but rather has to have them hard coded. 2. The syntax is super
-cumbersome and requires searching stackoverflow.  
+We can see that:  
+1\. We have to define a custom function, and it can’t even work for
+general inputs  
+but rather has to have them hard coded.  
+2\. The syntax is super cumbersome and requires searching
+stackoverflow.  
 3\. We need to use *apply* instead of the common *agg* method.
+
+## Window functions in dplyr are way better than in pandas
+
+### Aggregation over a window
+
+Let’s say we’d like to calculate the mean of sepal length within each
+species and append that to the original dataset (In SQL:
+SUM(Sepal.Length) OVER(partition by Species) would be:
+
+``` python
+iris.assign(mean_sepal = lambda x: x.groupby('Species')['Sepal.Length'].transform(np.mean))
+```
+
+We can see that this requires an additional method, compared with dplyr
+which does not necessitate looking up stackoverflow:
+
+``` r
+iris %>% group_by(Species) %>% mutate(mean_sepal = mean(Sepal.Length))
+```
+
+I wasn’t able to come up with a way to use a function with more than 1
+input such as weighted mean in pandas. In dplyr it’s pretty straight
+forward:
+
+``` r
+iris %>% group_by(Species) %>% mutate(mean_sepal = weighted.mean(Sepal.Length, Sepal.Width))
+```
+
+### Expanding windows
+
+Now let’s say we’d like to calculate an expanding sum ()
+
+## pandas case when is annoying
+
+# Rstudio is way better than jupyter notebooks
+
+## Code autocompletion in Rstudio is way better than jupyter notebooks
+
+Below we can see a code completion example in Rstudio:
+
+![autocompletion](stuff/autocompletion.gif)
+
+We can see that
+
+1.  When calling functions you get documentation of arguments on the go,
+    both overview and detailed in pop-up windows  
+2.  Used arguments don’t show up in the autocompletion (after setting x
+    it doesn’t show up again)  
+3.  When calling functions in a dplyr chain you have the data frame
+    variables listed and autocompleted (thanks to data masking)
+
+In constrast see below the autocompletion results for pandas DataFrame
+in jupyter notebooks:
+
+![Jupyter notebook autocompletion for padnas
+DataFrame](stuff/jupyter_autocompletion.png) We can see you get a long
+list of irrelevant stuff.
+
+# python has no formula interface for models
+
+This is another way to use models which can be quite convenient and
+powerful at times. Saves a lot of time when you don’t want to go all in
+with dedicated transformation code.
 
 # python has no list equivalent class
 
@@ -289,11 +401,24 @@ python_dict['a_vector']
   - Pandas index is pretty useless. You can see how often you’ll use
     reset\_index(). )
 
+  - python copy inplace is really confusing (x = y, if you change y so
+    does x)
+
   - python indexing starts with 0 which is confusing
 
-  - R spark and tensorflow api’s are less powerful. Still, there’s a
-    question of how much and when one should move to using scala spark
-    anyway.
+  - Rmarkdown greatly expands the ability to communicate results,
+    especially with non technical colleagues. It easily let’s one render
+    his Rmd into word, html, md, pdf etc and share those. I have an
+    entire site built using Rmarkdown. In order to view ipynb files one
+    needs access to github or specialized software.
 
-  - Deep learning is better in python - Most APIs are available in both.
-    Cutting edge stuff is more abundant in python.
+  - dplyr syntax can be used with multiple backends: spark, postgres,
+    data.table and many others. While some functionality may not be
+    supported, it can still save a lot of time.
+
+**python strong points** - R spark interface is less powerful. For
+example: pandas UDF. - Cutting edge DL is usually written in python.
+Other than that all API’s are available in both (not sure to what degree
+they differ)
+
+# Markdown Editor
