@@ -1,7 +1,7 @@
-R is better than python for DS
+All the reasons R is better than python
 ================
 Iyar Lin
-20 April, 2021
+21 April, 2021
 
   - [First off - feel free to
     contribute\!](#first-off---feel-free-to-contribute)
@@ -13,6 +13,8 @@ Iyar Lin
         pandas](#aggregation-in-dplyr-is-way-more-intuitive-than-pandas)
       - [Window functions in dplyr are way better than in
         pandas](#window-functions-in-dplyr-are-way-better-than-in-pandas)
+          - [Aggregation over a window](#aggregation-over-a-window)
+          - [Expanding windows](#expanding-windows)
       - [pandas case when is annoying](#pandas-case-when-is-annoying)
   - [Rstudio is way better than jupyter
     notebooks](#rstudio-is-way-better-than-jupyter-notebooks)
@@ -26,6 +28,11 @@ Iyar Lin
   - [Markdown Editor](#markdown-editor)
 
 <br>
+
+*"don’t be fooled by the hype that python caught*  
+*R still R still is the thing you want"*
+
+![dont be fooled](stuff/dont_be_fooled.gif)
 
 # First off - feel free to contribute\!
 
@@ -100,17 +107,9 @@ writing your code. See below how that looks like:
 
 ![autocompletion](stuff/autocompletion.gif)
 
-In pandas you can get variable autcompletion in some cases (e.g. when
-calling series as a method of a DataFrame) but in many cases you don’t.
-For example when selecting DataFrame columns by name you pass a list of
-variable name strings:
-
-``` python
-iris2 = iris[['Species', 'Sepal.Length']]
-```
-
-Another example is when using the query method to filter you pass
-strings, so no variable autocompletion.
+In pandas whenever you select variables, pass variables to agg method,
+use sort\_values, use filter method and many other cases you pass string
+variables names, meaning no autocompletion for you.
 
 ## Aggregation in dplyr is way more intuitive than pandas
 
@@ -125,20 +124,19 @@ mean_sepal_length <- iris %>%
   summarise(mean_length = mean(Sepal.Length))
 ```
 
-A common way of doing the same in pandas would be using the aggregate
+A common way of doing the same in pandas would be using the *aggregate*
 method:
 
 ``` python
 mean_sepal_length = (
   iris.groupby('Species').agg({'Sepal.Length':'mean'})
+  .rename({'Sepal.Length':'mean_length'}, axis = 1)
 )
-mean_sepal_length = mean_sepal_length.rename({'Sepal.Length':'mean_length'}, axis = 1)
 ```
 
-We can see that pandas requires an additional line to rename the
-variable.
+We can see that pandas requires an additional *rename* call.
 
-A better way to use agg would be:
+A better way to use *agg* would be:
 
 ``` python
 mean_sepal_length = (
@@ -197,14 +195,14 @@ stackoverflow.
 
 Let’s say we’d like to calculate the mean of sepal length within each
 species and append that to the original dataset (In SQL:
-SUM(Sepal.Length) OVER(partition by Species) would be:
+SUM(Sepal.Length) OVER(partition by Species)) would be:
 
 ``` python
 iris.assign(mean_sepal = lambda x: x.groupby('Species')['Sepal.Length'].transform(np.mean))
 ```
 
-We can see that this requires an additional method, compared with dplyr
-which does not necessitate looking up stackoverflow:
+We can see that this requires a dedicated method (*transoform*),
+compared with dplyr which which builds on the familiar basic syntax:
 
 ``` r
 iris %>% group_by(Species) %>% mutate(mean_sepal = mean(Sepal.Length))
@@ -212,7 +210,8 @@ iris %>% group_by(Species) %>% mutate(mean_sepal = mean(Sepal.Length))
 
 I wasn’t able to come up with a way to use a function with more than 1
 input such as weighted mean in pandas. In dplyr it’s pretty straight
-forward:
+forward and again, just a minor and intuitive tweak of the previuos
+code:
 
 ``` r
 iris %>% group_by(Species) %>% mutate(mean_sepal = weighted.mean(Sepal.Length, Sepal.Width))
@@ -220,7 +219,43 @@ iris %>% group_by(Species) %>% mutate(mean_sepal = weighted.mean(Sepal.Length, S
 
 ### Expanding windows
 
-Now let’s say we’d like to calculate an expanding sum ()
+Now let’s say we’d like to calculate an expanding sum (in SQL:
+SUM(Sepal.Length) OVER(partition by Species ORDER BY Sepal.Width))
+
+In dplyr it’s pretty straight forawrd:
+
+``` r
+iris %>% arrange(Species, Sepal.Width) %>% group_by(Species) %>% 
+  mutate(expanding_sepal_sum = sapply(1:n(), function(x) sum(Sepal.Length[1:x])))
+```
+
+Notice we don’t need to memorise any additional functions/methods. You
+find solution using ubiquitous tools (e.g. sapply) and just plug it in
+the dplyr chain.
+
+In pandas we’ll have to search stackoverflow to come up with the
+*expanding* method:
+
+``` python
+(
+  iris.sort_values('Sepal.Length').groupby('Species')
+  .expanding().agg({'Sepal.Length': 'sum'})
+  .rename({'Sepal.Length':'expanding_sepal_sum'}, axis = 1)
+)
+```
+
+Again, we need to use an additional *rename* call.
+
+You’d might want to pass a tuple to *agg* like you’re used to in order
+to avoid the additional *rename* but for some reason the following
+syntax just wont work:
+
+``` python
+(
+  iris.sort_values('Sepal.Length').groupby('Species')
+  .expanding().agg(expanding_sepal_sum = ('Sepal.Length', 'sum'))
+)
+```
 
 ## pandas case when is annoying
 
