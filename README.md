@@ -1,36 +1,55 @@
 All the reasons R is better than python
 ================
 Iyar Lin
-21 April, 2021
+22 April, 2021
 
   - [First off - feel free to
     contribute\!](#first-off---feel-free-to-contribute)
   - [Motivation](#motivation)
   - [dplyr is way better than pandas](#dplyr-is-way-better-than-pandas)
-      - [pandas is missing variable
-        autocompletion](#pandas-is-missing-variable-autocompletion)
-      - [Aggregation in dplyr is way more intuitive than
-        pandas](#aggregation-in-dplyr-is-way-more-intuitive-than-pandas)
-      - [Window functions in dplyr are way better than in
-        pandas](#window-functions-in-dplyr-are-way-better-than-in-pandas)
+      - [Aggregation](#aggregation)
+      - [Window functions](#window-functions)
           - [Aggregation over a window](#aggregation-over-a-window)
           - [Expanding windows](#expanding-windows)
-      - [pandas case when is annoying](#pandas-case-when-is-annoying)
+          - [Moving windows](#moving-windows)
+      - [Case when](#case-when)
+      - [pandas is missing variable
+        autocompletion](#pandas-is-missing-variable-autocompletion)
+      - [data.table is way faster than
+        pandas](#data.table-is-way-faster-than-pandas)
   - [Rstudio is way better than jupyter
     notebooks](#rstudio-is-way-better-than-jupyter-notebooks)
-      - [Code autocompletion in Rstudio is way better than jupyter
-        notebooks](#code-autocompletion-in-rstudio-is-way-better-than-jupyter-notebooks)
-  - [python has no formula interface for
-    models](#python-has-no-formula-interface-for-models)
+      - [Code autocompletion](#code-autocompletion)
+      - [Ability to run code line by
+        line](#ability-to-run-code-line-by-line)
+      - [Variable explorer](#variable-explorer)
+      - [Debugger](#debugger)
+      - [Installation and dependency
+        management](#installation-and-dependency-management)
+      - [Table of contents](#table-of-contents)
+  - [R is just as capable for ML if not better than
+    python](#r-is-just-as-capable-for-ml-if-not-better-than-python)
+      - [python has no formula interface for
+        models](#python-has-no-formula-interface-for-models)
+      - [sklearn does not support categorical variables in decision
+        trees](#sklearn-does-not-support-categorical-variables-in-decision-trees)
   - [python has no list equivalent
     class](#python-has-no-list-equivalent-class)
+  - [Packages in R are much easier to pick
+    up](#packages-in-r-are-much-easier-to-pick-up)
+      - [Depndencies management](#depndencies-management)
+      - [documentation](#documentation)
+  - [Cases where python is better than
+    R](#cases-where-python-is-better-than-r)
+      - [Cutting edge deep learning](#cutting-edge-deep-learning)
+      - [pySpark is more developed than sparkR/sparklyr
+        (?)](#pyspark-is-more-developed-than-sparkrsparklyr)
   - [List backlog](#list-backlog)
-  - [Markdown Editor](#markdown-editor)
 
 <br>
 
-*"don’t be fooled by the hype that python caught*  
-*R still R still is the thing you want"*
+*"don’t be fooled by the hype that python got*  
+*R still R still is the tool you want"*
 
 ![dont be fooled](stuff/dont_be_fooled.gif)
 
@@ -38,13 +57,14 @@ Iyar Lin
 
 In this document I’ll be curating examples of cases where working with R
 is notably faster than python. This is a living document which I’ll keep
-updating as I come across new examples. Also, if you’d like to extend
-the list feel free to open a pull request.
+updating as I come across new examples. If you’d like to add your own
+feel free to open a pull request.
 
 **I encourage the reader to point out cases where I’m wrong** - for
-example when better ways to perform a task in python exist. If I come
-across cases where python is notably faster I’ll be sure to add them
-too.
+example when better ways to perform a task in python exist. I’ve started
+compiling a [list](#python_better_than_r) of cases where python might be
+a better solution than R but it’s relatively short. Again, I encourage
+the reader to help add more points to it too.
 
 Note this repo has a [discussions
 section](https://github.com/IyarLin/r-is-better-than-python-for-ds/discussions)
@@ -52,7 +72,7 @@ so feel free to comment there.
 
 # Motivation
 
-99.9% of all DS tasks can be done using either R ot python - so why does
+99.9% of all DS tasks can be done using either R or python - so why does
 it even matter which one is used? The answer is: Speed. The iterative
 nature of DS development means that the faster a practitioner can
 transform ideas to code and the faster that code executes - the more
@@ -100,18 +120,9 @@ section you’ll find merit in my hypothesis.
 ![pandas vs dplyr questions on stack
 overflow](stuff/Screen%20Shot%202021-04-18%20at%2021.44.41.png)
 
-## pandas is missing variable autocompletion
+<a name="aggregation"></a>
 
-In dplyr data masking enables you to have variable completion when
-writing your code. See below how that looks like:
-
-![autocompletion](stuff/autocompletion.gif)
-
-In pandas whenever you select variables, pass variables to agg method,
-use sort\_values, use filter method and many other cases you pass string
-variables names, meaning no autocompletion for you.
-
-## Aggregation in dplyr is way more intuitive than pandas
+## Aggregation
 
 We’ll start with a simple example: calculate the mean Sepal length
 within each species in the iris dataset.
@@ -119,7 +130,7 @@ within each species in the iris dataset.
 In dplyr:
 
 ``` r
-mean_sepal_length <- iris %>% 
+iris %>% 
   group_by(Species) %>% 
   summarise(mean_length = mean(Sepal.Length))
 ```
@@ -128,7 +139,7 @@ A common way of doing the same in pandas would be using the *aggregate*
 method:
 
 ``` python
-mean_sepal_length = (
+(
   iris.groupby('Species').agg({'Sepal.Length':'mean'})
   .rename({'Sepal.Length':'mean_length'}, axis = 1)
 )
@@ -136,30 +147,37 @@ mean_sepal_length = (
 
 We can see that pandas requires an additional *rename* call.
 
-A better way to use *agg* would be:
+We can avoid the additional *rename* by passing a tuple to *agg*:
 
 ``` python
-mean_sepal_length = (
-  iris.groupby('Species').agg(mean_length = ('Sepal.Length', 'mean'))
-)
+iris.groupby('Species').agg(mean_length = ('Sepal.Length', 'mean'))
 ```
 
 While this looks much closer to the dplyr syntax, it also highlights the
-fact there’s multiple ways of using the agg method.
+fact there’s multiple ways of using the agg method - contrary to common
+wisdom that in R there are many ways to do the same thing while in
+python there’s only a single obviuos way.
 
-Now let’s say we’d like to use a weighted average (with Sepal width as
+Now let’s say we’d like to use a weighted average (with sepal width as
 weights).
 
-In dplyr it would be:
+In dplyr we’d use the weighted mean funciton with an additional
+argument:
 
 ``` r
-sepal_length_to_width_ratio <- iris %>%
+iris %>%
   group_by(Species) %>%
   summarize(weighted_mean_length = weighted.mean(Sepal.Length, Sepal.Width))
 ```
 
-We naturally just added an argument column to the weighted mean
-function.
+Pretty straight forward. In fact, it’s so straight forward we can do the
+actual weighted mean calculation:
+
+``` r
+iris %>%
+  group_by(Species) %>%
+  summarize(weighted_mean_length = sum(Sepal.Length * Sepal.Width)/sum(Sepal.Width))
+```
 
 In pandas it’s not so simple. One can’t just tweak the above examples.
 To come up with a pandas version I had to search stackoverflow and based
@@ -187,9 +205,12 @@ general inputs
 but rather has to have them hard coded.  
 2\. The syntax is super cumbersome and requires searching
 stackoverflow.  
-3\. We need to use *apply* instead of the common *agg* method.
+3\. We need to use *apply* instead of the common *agg* method.  
+4\. I’m pretty sure anyone not using the above code for more than a few
+weeks would have to search stackoverflow/his code base again to find the
+answer next time he needs to do that calculation.
 
-## Window functions in dplyr are way better than in pandas
+## Window functions
 
 ### Aggregation over a window
 
@@ -230,7 +251,7 @@ iris %>% arrange(Species, Sepal.Width) %>% group_by(Species) %>%
 ```
 
 Notice we don’t need to memorise any additional functions/methods. You
-find solution using ubiquitous tools (e.g. sapply) and just plug it in
+find a solution using ubiquitous tools (e.g. sapply) and just plug it in
 the dplyr chain.
 
 In pandas we’ll have to search stackoverflow to come up with the
@@ -238,7 +259,7 @@ In pandas we’ll have to search stackoverflow to come up with the
 
 ``` python
 (
-  iris.sort_values('Sepal.Length').groupby('Species')
+  iris.sort_values(['Species', 'Sepal.Length']).groupby('Species')
   .expanding().agg({'Sepal.Length': 'sum'})
   .rename({'Sepal.Length':'expanding_sepal_sum'}, axis = 1)
 )
@@ -252,22 +273,134 @@ syntax just wont work:
 
 ``` python
 (
-  iris.sort_values('Sepal.Length').groupby('Species')
+  iris.sort_values(['Species', 'Sepal.Length']).groupby('Species')
   .expanding().agg(expanding_sepal_sum = ('Sepal.Length', 'sum'))
 )
 ```
 
-## pandas case when is annoying
+You could also avoid the additional rename by using the following eye
+sore:
+
+``` python
+(
+  iris.assign(expanding_sepal_sum = lambda x:x.sort_values('Sepal.Length')
+                .groupby('Species').expanding().agg({'Sepal.Length': 'sum'})
+                .reset_index()['Sepal.Length'])
+)
+```
+
+### Moving windows
+
+Now let’s say we’d like to calculate a moving central window mean (in
+SQL: AVG(Sepal.Length) OVER(partition by Species ORDER BY Sepal.Width
+ROWS BETWEEN 2 PRECEDING AND 2 FOLLOWING))
+
+As usual, in dplyr it’s pretty straightforward:
+
+``` r
+iris %>%
+  arrange(Species, Sepal.Width) %>%
+  group_by(Species) %>%
+  mutate(moving_mean_sepal_length = sapply(1:n(), function(x) mean(Sepal.Length[max(x-2,1):min(x+2,n())])))
+```
+
+As in the other examples, all you have to do is find a solution using
+ubiuitous tools and plug it in the dplyr chain.
+
+In pandas we’d have to look up the *rolling* method, read it’s
+documentation and come up with the following:
+
+``` python
+(
+  iris.sort_values(['Species', 'Sepal.Width']).groupby('Species')
+  .rolling(window = 5, center = True, min_periods = 1).agg({'Sepal.Length': 'mean'})
+  .rename({'Sepal.Length':'moving_mean_sepal_length'}, axis = 1)
+)
+```
+
+## Case when
+
+Below we can see an example of using case when in dplyr:
+
+``` r
+iris %>% 
+  mutate(nice = case_when(
+    Species == "setosa" & Sepal.Length < 5 ~ "value C", 
+    Species == "versicolor" & Sepal.Length < 5 ~ "Value A", 
+    Species == "virginica" & Sepal.Length < 5 ~ "Value G", 
+    T ~ "high"
+  ))
+```
+
+pandas on the other hand has no dedicated case when function. It uses
+the numpy select:
+
+``` python
+iris.assign(wow = lambda x: np.select(
+    [
+        (x['Species'] == "setosa") & (x['Sepal.Length'] < 5), 
+        (x['Species'] == "versicolor") & (x['Sepal.Length'] < 5),
+        (x['Species'] == "virginica") & (x['Sepal.Length'] < 5)
+    ], 
+    [
+        'value C', 
+        'value A',
+        'value G'
+    ], 
+    default='high'))
+```
+
+We can see that:
+
+1.  The syntax is way less readable  
+2.  It can get quite messy to understand what value results from what
+    condition if the list of conditions becomes long
+
+## pandas is missing variable autocompletion
+
+In dplyr data masking enables you to have variable completion when write
+your code. See below how that looks like:
+
+![autocompletion](stuff/autocompletion.gif)
+
+In pandas whenever you select variables, pass variables to agg method,
+use sort\_values, use filter method etc you pass string variables names,
+meaning no autocompletion for you.
+
+## data.table is way faster than pandas
+
+For most cases when working with data frames that fit in memory there
+will probably be not difference in compute time between *pandas* and
+*dplyr*/*data.table*. There are instances however when working with
+medium to large datasets where *pandas* will significantly lag behind
+*data.table*. There’s a whole
+[website](https://h2oai.github.io/db-benchmark/) dedicated to
+benchmarking data base like operations across many platforms. We can see
+below an example where *data.table* is the fastest out there, leaving
+*pandas* (among others) in the dust.
+
+![data.table leaves dust everyone in the
+dust](stuff/datatable_speed.png) python users might rejoice over the
+fact *pandas* seems much faster than *dplyr*. Thing is *dplyr* can use
+*data.table* as a backend and enjoy all the [syntax joy](#aggregation)
+of dplyr.
 
 # Rstudio is way better than jupyter notebooks
 
-## Code autocompletion in Rstudio is way better than jupyter notebooks
+Working with Rmarkdown within Rstudio really feels like jupyter
+notebooks on steroids. In addition to the ability to assemble code,
+plots and tables within the same document you get tons of other useful
+features. Since there are some many, below I’ll list just a few notable
+features that make Rstudio so much better to work with than jupyter
+notebooks.
+
+## Code autocompletion
 
 Below we can see a code completion example in Rstudio:
 
 ![autocompletion](stuff/autocompletion.gif)
 
-We can see that
+We can see that:
 
 1.  When calling functions you get documentation of arguments on the go,
     both overview and detailed in pop-up windows  
@@ -283,11 +416,184 @@ in jupyter notebooks:
 DataFrame](stuff/jupyter_autocompletion.png) We can see you get a long
 list of irrelevant stuff.
 
-# python has no formula interface for models
+## Ability to run code line by line
 
-This is another way to use models which can be quite convenient and
-powerful at times. Saves a lot of time when you don’t want to go all in
-with dedicated transformation code.
+Running code line by line can be especially important when you want to
+debug a chunk of code. See an example below:
+
+<a name="previuos_example"></a>
+
+![line\_by\_line](stuff/function_error.gif)
+
+In jupyter notebooks you’d have to copy each line seperately to a new
+cell, fix indentation and run it.
+
+In the above we not only see how easy it is to debug a function in
+Rstudio, we also see a run status bar on the left showing you exactly
+where the error occurred when running the chunk as a whole (which can
+also be useful when running big chunks to know where in the chunk your
+code runs right now).
+
+## Variable explorer
+
+In the [previous example](#previuos_example) we could also see a
+variable explorer which does not exist in jupyter notebooks. Comes handy
+especially when context switching or to dynamically inspect results
+(e.g. number of rows in a filtered dataframe).
+
+## Debugger
+
+Rstudio has a full fledged [visual
+debugger\!](https://support.rstudio.com/hc/en-us/articles/205612627-Debugging-with-RStudio)
+The Jupyter blog
+[announced](https://blog.jupyter.org/a-visual-debugger-for-jupyter-914e61716559)
+a visual debugger back in March 2020 but I have yet to see it installed
+anywhere in practice. It’s possible that’s due to the fact it’s still
+experimental and available for a specific kernel type.
+
+*“The only kernel implementing this protocol, for now, is xeus-python a
+new Jupyter kernel for the Python programming language”*
+
+This naturally leads to the next point:
+
+## Installation and dependency management
+
+To take advantage of all the features in Rstudio you need only download
+the latest version and install. Jupyter notebooks are much more
+fragmented with many of the more advanced features installed separately,
+often working on only subsets of machines or requiring managing all
+sorts of dependencies.
+
+## Table of contents
+
+When working on a very large document - like this one I’m writing right
+now in Rstudio it can be become pretty hard to navigate the different
+document parts. In Rstudio you get an automatic table of contents:
+
+![toc](stuff/toc.png)
+
+# R is just as capable for ML if not better than python
+
+One recurring theme is that R is good for statistics (which is true)
+while python (namely scikit-learn) is preferable for ML.
+
+scikit-learn is a meta-ML package - meaning it manages the entire ML
+pipeline (cross validation, transformations, benchmarking etc). R has
+several mature meta-ML packages of it’s own - most prominently
+[mlr3](https://mlr3.mlr-org.com/) and
+[tidymodels](https://www.tidymodels.org/).
+
+![tidymodels](stuff/tidymodels.png) You can read more about mlr3 and
+tidymodels in this great [blog
+post](https://medium.com/analytics-vidhya/meta-machine-learning-aggregator-packages-in-r-round-ii-71ee1ff68642).
+While it’s hard to compare sklearn with the R packages, it’s safe to say
+R has no shortage of high quality meta-ML packages.
+
+## python has no formula interface for models
+
+I think this is easily one of the most overlooked aspect of R: the
+formula interface. It makes model fitting and predicting much easier and
+concise. Using simple symbolic notation the user can define the target
+and predictor variables, as well as all sorts of transformations. Using
+the formula prescription R goes ahead and creates the design matrix,
+including one-hot encoding string/factor variables, applying
+transformations and fitting the model.
+
+See for example:
+
+``` r
+library(splines)
+train_ind <- sample.int(nrow(iris), 100)
+train_set <- iris[train_ind, ]
+test_set <- iris[-train_ind,]
+lm_model <- lm(Sepal.Length ~ poly(Petal.Length,3) + ns(Sepal.Width, 2) + Species, data = train_set)
+lm_model
+```
+
+    ## 
+    ## Call:
+    ## lm(formula = Sepal.Length ~ poly(Petal.Length, 3) + ns(Sepal.Width, 
+    ##     2) + Species, data = train_set)
+    ## 
+    ## Coefficients:
+    ##            (Intercept)  poly(Petal.Length, 3)1  poly(Petal.Length, 3)2  
+    ##                 5.9894                 12.5638                  0.9175  
+    ## poly(Petal.Length, 3)3     ns(Sepal.Width, 2)1     ns(Sepal.Width, 2)2  
+    ##                -0.1505                  1.0296                  0.9242  
+    ##      Speciesversicolor        Speciesvirginica  
+    ##                -0.5602                 -0.9711
+
+We can see that using a simple formula R went and:
+
+1.  Added an intercept column  
+2.  Generated 3 columns for the \(1^{st}\), \(2^{nd}\) and \(3^{rd}\)
+    degree orthogonal polynomials of Petal.Length  
+3.  Calculated the Sepal.Width natural cubic spline of with 2 nots.  
+4.  One-hot encoded the Species variable
+
+Now imagine trying to code all of this yourself\! The magic doesn’t end
+here though: We can use the resulting model to generate predictions on
+new sets (that contain at least the variables used for the model fit)
+and the model object will take care of recreating the design matrix
+using the transformation parameters obtained in the model fit stage
+(e.g. knot locations):
+
+``` r
+new_pred <- predict(lm_model, newdata = test_set)
+head(new_pred)
+```
+
+    ##        3        4        5        8        9       11 
+    ## 4.797921 4.837075 5.068098 4.996780 4.698331 5.174826
+
+Doing the same with sklearn transformers for example would’ve taken way
+more effort.
+
+## sklearn does not support categorical variables in decision trees
+
+This one’s actually pretty important. When constructing a tree in R on a
+dataset that contains a categorical variable it can send several
+categories down each node.
+
+To show that I’ll use the iris dataset and create a “sub-species”
+variable which is just a split in half of every species (so 6 levels
+overall).
+
+We next fit a tree model:
+
+``` r
+library(rpart)
+set.seed(1)
+iris_for_tree <- iris %>% mutate(subspecies = 
+                                   paste0(Species, sample.int(2, size = n(), 
+                                                              replace = T))) %>%
+  select(Sepal.Length, subspecies)
+
+rpart(Sepal.Length ~ subspecies, data = iris_for_tree)
+```
+
+    ## n= 150 
+    ## 
+    ## node), split, n, deviance, yval
+    ##       * denotes terminal node
+    ## 
+    ##  1) root 150 102.1683 5.843333  
+    ##    2) subspecies=setosa1,setosa2 50   6.0882 5.006000 *
+    ##    3) subspecies=versicolor1,versicolor2,virginica1,virginica2 100  43.4956 6.262000  
+    ##      6) subspecies=versicolor1,versicolor2 50  13.0552 5.936000 *
+    ##      7) subspecies=virginica1,virginica2 50  19.8128 6.588000  
+    ##       14) subspecies=virginica2 25   6.0600 6.420000 *
+    ##       15) subspecies=virginica1 25  12.3416 6.756000 *
+
+We can see that on the first split 2 categories (setosa1,setosa2) went
+down the left node while the rest went to the right.
+
+sklearn however [does not support categorical
+data](https://scikit-learn.org/stable/modules/tree.html#tree-algorithms-id3-c4-5-c5-0-and-cart).
+This means we have to one hot encode those - effectively meaning you can
+only do one vs the rest splitting. This can have serious implications,
+especially in cases where categories with a large number of levels are
+present in the dataset.
 
 # python has no list equivalent class
 
@@ -301,16 +607,10 @@ r_list <- list(a_vector = c("a","c","R"), a_scalar = 3,
 
 ## access by index:
 r_list[[1]]
-```
 
-    ## [1] "a" "c" "R"
-
-``` r
 ## access by names:
 r_list$a_scalar
 ```
-
-    ## [1] 3
 
 In python one can either store data in a list which can be accessed by
 element index but has no names:
@@ -319,8 +619,6 @@ element index but has no names:
 python_list = [["a","c","R"], 3, ["yay", [1,3]]]
 python_list[2]
 ```
-
-    ## ['yay', [1, 3]]
 
 or in a dictionary which allows accessing elements by name but not by
 element index (in fact it has no ordering at all\!)
@@ -333,7 +631,74 @@ python_dict = {
 python_dict['a_vector']
 ```
 
-    ## ['a', 'c', 'R']
+# Packages in R are much easier to pick up
+
+In R every package that is hosted on CRAN needs to satisfy a list of
+requirements that ensure it’s well documented and usable.
+
+One might argue that this stifles code sharing but package hosting and
+installing from github is pretty straightforward in R. I do that myself.
+
+## Depndencies management
+
+R package versions rarely break your code - things that used to work
+just keep working in new versions.
+
+When you pick up a new library in python it’s not rare to need to either
+downgrade or look up very specific library versions that work with the
+one you’re trying to use. This problem is so big that using virtual
+environments becomes almost a necessity in order to have any change of
+managing all the dependencies across different projects.
+
+The *packrat* package in R fulfills the same functionality but one
+rarely **has** to use it. It’s more for maintaining reproducibility.
+
+## documentation
+
+Documentation in R has a predetermined structure. They all need to have
+a title, a description, usage pattern, arguments, details section etc
+which makes reading new documentation much easier because you know what
+to expect and where to look for the information you’re after.
+
+R documentation is also rendered very nicely in the Rstudio IDE (not
+strictly an R feature by itself I admit):
+
+![Rstudio documentation rendering](stuff/documentation.png)
+
+<a name="python_better_than_r"></a>
+
+# Cases where python is better than R
+
+Below are a few cases where I concede python can be easier/faster to
+work with than R.
+
+## Cutting edge deep learning
+
+Both R and python has mature API’s for the 2 main deep learning
+frameworks - tensorflow and pytorch. Both also have an API for Keras.
+These probably cover the vast majority of use cases in deep learning.
+
+For the most cutting edge models it might be preferable to use python
+directly (instead of through *reticulate*) as these are usually
+developed with python and their experimental nature often necessitates
+being able to look under the hood and dealing with complex
+configurations.
+
+## pySpark is more developed than sparkR/sparklyr (?)
+
+One of the most popular tools to deal with big data is Apache Spark.
+Both python and R has API’s for spark (*pyspark* for python and *SparkR*
+and *sparklyr* in R).
+
+The beauty of *sparklyr* is that it enables one to use spark with
+*dplyr* syntax. So if you know *dplyr* you get spark for free. Pretty
+good for standard operations.
+
+Until recently I thought pyspark was more advanced than SparkR due to
+having pandas UDF, but now I’m not entirely sure as I just read a
+[post](https://cosminsanda.com/posts/a-compelling-case-for-sparkr/)
+about how to deploy pretty much every R ML package using the Spark
+engine.
 
 # List backlog
 
@@ -373,11 +738,6 @@ python_dict['a_vector']
     elegant but I find those "" at every line ending pretty weird.
     Another option would be putting entire expressions in parenthesis,
     which again, is less elegant.
-
-  - R dplyr syntax is way easier to learn and use than pandas.
-    Aggregation example.  
-
-  - another example: setting column type can’t be done in a pipe
 
   - Pipes in dplyr are natural. In pandas you often need to use
     different methods (e.g. query instead of the usual filter, assign
@@ -452,8 +812,4 @@ python_dict['a_vector']
     supported, it can still save a lot of time.
 
 **python strong points** - R spark interface is less powerful. For
-example: pandas UDF. - Cutting edge DL is usually written in python.
-Other than that all API’s are available in both (not sure to what degree
-they differ)
-
-# Markdown Editor
+example: pandas UDF.
