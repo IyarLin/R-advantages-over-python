@@ -1,4 +1,4 @@
-All the reasons R is better than python
+R advantages over python
 ================
 Iyar Lin
 27 April, 2021
@@ -72,16 +72,16 @@ them in this repo I try to avoid:
 
 ## Feel free to contribute
 
-If you’d like to add examples, including where python is better than R
-(there’s a small [section](#python_better_than_r) for that) feel free to
-open a pull request.
+If you’d like to add examples, including where python has the edge over
+R (there’s a small [section](#python_better_than_r) for that) feel free
+to open a pull request.
 
 **I encourage the reader to point out cases where I’m wrong** - for
 example when better ways to perform a task in python exist. A appreciate
 the feedback.
 
 Note this repo has a [discussions
-section](https://github.com/IyarLin/r-is-better-than-python-for-ds/discussions)
+section](https://github.com/IyarLin/R-advantages-over-python/discussions)
 so feel free to comment there.
 
 # Working with dplyr is much faster than pandas
@@ -339,7 +339,8 @@ iris.assign(wow = lambda x: np.select(
 
 We can see that:
 
-1.  The syntax is way less readable  
+1.  The syntax is way less readable. In order to match condition with
+    outcome one needs to index the conditions and outcomes in his head  
 2.  It can get quite messy to understand which value results from what
     condition if the list of conditions becomes long
 
@@ -808,3 +809,5 @@ to pick one and expand on it\!
   - dplyr syntax can be used with multiple backends: spark, postgres,
     data.table and many others. While some functionality may not be
     supported, it can still save a lot of time.
+
+  - test editing tools in Rstudio are superb (find and replcae etc)
