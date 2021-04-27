@@ -40,13 +40,10 @@ Iyar Lin
         trees](#sklearn-does-not-support-categorical-variables-in-decision-trees)
   - [python has no list equivalent
     class](#python-has-no-list-equivalent-class)
-  - [Packages in R are much easier to pick
-    up](#packages-in-r-are-much-easier-to-pick-up)
+  - [Package management and
+    distribution](#package-management-and-distribution)
       - [Depndencies management](#depndencies-management)
       - [Documentation](#documentation)
-  - [In case python has some functionality missing in R - you can just
-    import it with
-    reticulate](#in-case-python-has-some-functionality-missing-in-r---you-can-just-import-it-with-reticulate)
   - [Cases where python is better than
     R](#cases-where-python-is-better-than-r)
       - [Cutting edge deep learning](#cutting-edge-deep-learning)
@@ -80,9 +77,8 @@ If you’d like to add examples, including where python is better than R
 open a pull request.
 
 **I encourage the reader to point out cases where I’m wrong** - for
-example when better ways to perform a task in python exist. I’ve started
-compiling a of cases where python might be a better solution than R but
-it’s relatively short.
+example when better ways to perform a task in python exist. A appreciate
+the feedback.
 
 Note this repo has a [discussions
 section](https://github.com/IyarLin/r-is-better-than-python-for-ds/discussions)
@@ -697,7 +693,7 @@ python_dict = {
 python_dict['a_vector']
 ```
 
-# Packages in R are much easier to pick up
+# Package management and distribution
 
 In R every package that is hosted on CRAN needs to satisfy a list of
 requirements that ensure it’s well documented and usable.
@@ -739,56 +735,6 @@ to expect and where to look for the information you’re after.
 R documentation is also [rendered very nicely in the Rstudio
 IDE](#documentation_render) (not strictly an R feature by itself I
 admit).
-
-# In case python has some functionality missing in R - you can just import it with reticulate
-
-The [reticulate](https://rstudio.github.io/reticulate/) package enables
-leveraging any python functionality within an R session. There are
-several ways one can do this. One of which is just writing python code
-within the same notebook. The following piece of python code (as well as
-all others in this document) actually runs on a parallel python session:
-
-``` python
-from random import sample
-wow = sample([4,3,2,10,6], 3)
-wow
-```
-
-    ## [2, 6, 3]
-
-We can access objects from the python session in our R session like so:
-
-``` r
-wow_in_r = py$wow
-wow_in_r
-```
-
-    ## [1] 2 6 3
-
-We can send objects the other way too. Generate some object in our R
-session:
-
-``` r
-sweet_in_r = sample(1:20, 3)
-sweet_in_r
-```
-
-    ## [1] 15 18  1
-
-Then access it in our python session:
-
-``` python
-r.sweet_in_r
-```
-
-    ## [15, 18, 1]
-
-My personal area of interest is causal inference and python happens to
-have a cool library called [dowhy](https://microsoft.github.io/dowhy/)
-(developed by microsoft). Instead of having to switch languages I just
-imported all it’s functionality into my R session. You can see a [blog
-post](https://iyarlin.github.io/2020/04/20/dowhy_exploration/) I wrote
-to see how that looks like.
 
 <a name="python_better_than_r"></a>
 
@@ -832,14 +778,6 @@ to pick one and expand on it\!
 
   - R has great utilities for package writing - roxygen2 for example.
 
-  - In cases python has some functionality missing in R, the reticulate
-    package in R let’s one import any python module directly into the R
-    session (All pandas examples in this report are written inside an R
-    script. You can also see an example in my [blog
-    post](https://iyarlin.github.io/2020/04/20/dowhy_exploration/) that
-    uses the dowhy library from within R). Python has several packages
-    that aim to do the same but none are as mature.
-
   - Plotting in R is much better This may be a bit subjective as to
     which graphics look better - ggplot2 or matplotlib/seaborn. python
     has also plotnine but it’s way less feature rich, and does not have
@@ -870,5 +808,3 @@ to pick one and expand on it\!
   - dplyr syntax can be used with multiple backends: spark, postgres,
     data.table and many others. While some functionality may not be
     supported, it can still save a lot of time.
-
-  - Package ecosystem:
