@@ -1,11 +1,10 @@
 All the reasons R is better than python
 ================
 Iyar Lin
-25 April, 2021
+27 April, 2021
 
-  - [First off - feel free to
-    contribute\!](#first-off---feel-free-to-contribute)
   - [Motivation](#motivation)
+      - [Feel free to contribute](#feel-free-to-contribute)
   - [Working with dplyr is much faster than
     pandas](#working-with-dplyr-is-much-faster-than-pandas)
       - [Aggregation](#aggregation)
@@ -62,61 +61,32 @@ Iyar Lin
 
 ![dont be fooled](stuff/dont_be_fooled.gif)
 
-# First off - feel free to contribute\!
+# Motivation
 
-In this document I’ll be curating examples of cases where working with R
-is notably faster than python. This is a living document which I’ll keep
-updating as I come across new examples. If you’d like to add your own
-feel free to open a pull request.
+R has many advantages over python that should be taken into
+consideration when choosing which language to do DS with. When compiling
+them in this repo I try to avoid:
+
+1.  Too subjective comparisons. E.g. function indentation vs curly
+    braces closure.
+2.  Issues that one can get used to after a while like python indexing
+    (though the fact it starts from 0, or that object\[0:2\] returns
+    only the first 2 elements still throws me off once in a while).
+
+## Feel free to contribute
+
+If you’d like to add examples, including where python is better than R
+(there’s a small [section](#python_better_than_r) for that) feel free to
+open a pull request.
 
 **I encourage the reader to point out cases where I’m wrong** - for
 example when better ways to perform a task in python exist. I’ve started
-compiling a [list](#python_better_than_r) of cases where python might be
-a better solution than R but it’s relatively short. Again, I encourage
-the reader to help add more points to it too.
+compiling a of cases where python might be a better solution than R but
+it’s relatively short.
 
 Note this repo has a [discussions
 section](https://github.com/IyarLin/r-is-better-than-python-for-ds/discussions)
 so feel free to comment there.
-
-# Motivation
-
-99.9% of all DS tasks can be done using either R or python - so why does
-it even matter which one is used? The answer is: Speed. The iterative
-nature of DS development means that the faster a practitioner can
-transform ideas to code and the faster that code executes - the more
-ideas he can explore and iterate over and the more productive he
-becomes.
-
-One can probably do 99.9% of DS tasks with C++ too. But you don’t see
-too many practitioners do that - it takes too long\!
-
-The argument I’ll be supporting throughout this entire document is that
-**90% of DS tasks can be done with R much faster than with python**.
-
-Now, I know this topic is getting pretty old - there’s a myriad of posts
-on the topic. (I’ve actually
-[posted](https://iyarlin.github.io/2019/07/11/my_2_cents_on_the_r_vs_python_squabble/)
-on the subject in the past.) Still, most are confined to high level,
-very subjective comparisons. See
-[here](https://www.guru99.com/r-vs-python.html#:~:text=R%20is%20mainly%20used%20for,of%20course%2C%20the%20ideal%20solution.&text=Python%20is%20a%20general%2Dpurpose%20language%20with%20a%20readable%20syntax.)
-for example: “R is difficult to learn at the beginning while Python is
-Linear and smooth to learn” - why? No code examples are provided, survey
-results etc. Even
-[this](https://medium.com/@datadrivenscience/python-vs-r-for-data-science-and-the-winner-is-3ebb1a968197)
-piece on medium which got quite a few claps isn’t very helpful in
-answering which language should one pick.
-
-Granted, many aspects of the topic are subjective to some extent. E.g.
-which language is easier to learn varies a lot between different
-practitioners. I do think that a thorough comparison can greatly inform
-those who weigh which language to adopt for their DS team for example.
-
-Also, I can imagine sometimes there’s special cases which make python
-preferable to R (e.g. cutting edge deep learning, production environment
-limitations) but I believe that R is still the better choice in the vast
-majority of cases. At any rate it’s worth being aware of what you lose
-when choosing python over R.
 
 # Working with dplyr is much faster than pandas
 
@@ -784,7 +754,7 @@ wow = sample([4,3,2,10,6], 3)
 wow
 ```
 
-    ## [6, 3, 2]
+    ## [2, 6, 3]
 
 We can access objects from the python session in our R session like so:
 
@@ -793,7 +763,7 @@ wow_in_r = py$wow
 wow_in_r
 ```
 
-    ## [1] 6 3 2
+    ## [1] 2 6 3
 
 We can send objects the other way too. Generate some object in our R
 session:
