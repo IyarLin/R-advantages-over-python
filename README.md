@@ -72,12 +72,14 @@ them in this repo I try to avoid:
 
 ## Feel free to contribute
 
-If you’d like to add examples, including where python has the edge over
-R (there’s a small [section](#python_better_than_r) for that) feel free
-to open a pull request.
+I’m adding examples to this repo as I encounter them. There are areas
+such as dashboards and apps or advanced statistics with which I’m less
+familiar. If you’d like to add examples, including where python has the
+edge over R (there’s a small [section](#python_better_than_r) for that)
+feel free to open a pull request.
 
 **I encourage the reader to point out cases where I’m wrong** - for
-example when better ways to perform a task in python exist. A appreciate
+example when better ways to perform a task in python exist. I appreciate
 the feedback.
 
 Note this repo has a [discussions
