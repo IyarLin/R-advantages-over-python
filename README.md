@@ -1,10 +1,10 @@
 R advantages over python
 ================
 Iyar Lin
-27 April, 2021
+28 April, 2021
 
   - [Motivation](#motivation)
-      - [Feel free to contribute](#feel-free-to-contribute)
+      - [How to contribute](#how-to-contribute)
   - [Working with dplyr is much faster than
     pandas](#working-with-dplyr-is-much-faster-than-pandas)
       - [Aggregation](#aggregation)
@@ -70,13 +70,14 @@ them in this repo I try to avoid:
     (though the fact it starts from 0, or that object\[0:2\] returns
     only the first 2 elements still throws me off once in a while).
 
-## Feel free to contribute
+## How to contribute
 
 I’m adding examples to this repo as I encounter them. There are areas
-such as dashboards and apps or advanced statistics with which I’m less
-familiar. If you’d like to add examples, including where python has the
-edge over R (there’s a small [section](#python_better_than_r) for that)
-feel free to open a pull request.
+such as dashboards and apps, advanced statistics or production
+environemnts with which I’m less familiar with. If you’d like to add
+examples, including where python has the edge over R (there’s a small
+[section](#python_better_than_r) for that) feel free to add them to this
+README and open a pull request.
 
 **I encourage the reader to point out cases where I’m wrong** - for
 example when better ways to perform a task in python exist. I appreciate
