@@ -1,7 +1,7 @@
 R advantages over python
 ================
 Iyar Lin
-28 April, 2021
+01 May, 2021
 
   - [Motivation](#motivation)
       - [How to contribute](#how-to-contribute)
@@ -34,8 +34,6 @@ Iyar Lin
       - [Documentation rendering](#documentation-rendering)
   - [R is just as capable for ML if not better than
     python](#r-is-just-as-capable-for-ml-if-not-better-than-python)
-      - [python has no formula interface for
-        models](#python-has-no-formula-interface-for-models)
       - [sklearn does not support categorical variables in decision
         trees](#sklearn-does-not-support-categorical-variables-in-decision-trees)
   - [python has no list equivalent
@@ -545,66 +543,6 @@ You can read more about mlr3 and tidymodels in this great [blog
 post](https://medium.com/analytics-vidhya/meta-machine-learning-aggregator-packages-in-r-round-ii-71ee1ff68642).
 While it’s hard to compare sklearn with the R packages, it’s safe to say
 R has no shortage of high quality meta-ML packages.
-
-## python has no formula interface for models
-
-I think this is easily one of the most overlooked aspect of R: the
-formula interface. It makes model fitting and predicting much easier and
-concise. Using simple symbolic notation the user can define the target
-and predictor variables, as well as all sorts of transformations. Using
-the formula prescription R goes ahead and creates the design matrix,
-including one-hot encoding string/factor variables, applying
-transformations and fitting the model.
-
-See for example:
-
-``` r
-library(splines)
-train_ind <- sample.int(nrow(iris), 100)
-train_set <- iris[train_ind, ]
-test_set <- iris[-train_ind, ]
-lm_model <- lm(Sepal.Length ~ poly(Petal.Length, 3) + ns(Sepal.Width, 2) + Species, data = train_set)
-lm_model
-```
-
-    ## 
-    ## Call:
-    ## lm(formula = Sepal.Length ~ poly(Petal.Length, 3) + ns(Sepal.Width, 
-    ##     2) + Species, data = train_set)
-    ## 
-    ## Coefficients:
-    ##            (Intercept)  poly(Petal.Length, 3)1  poly(Petal.Length, 3)2  
-    ##                 5.9894                 12.5638                  0.9175  
-    ## poly(Petal.Length, 3)3     ns(Sepal.Width, 2)1     ns(Sepal.Width, 2)2  
-    ##                -0.1505                  1.0296                  0.9242  
-    ##      Speciesversicolor        Speciesvirginica  
-    ##                -0.5602                 -0.9711
-
-We can see that using a simple formula R went and:
-
-1.  Added an intercept column  
-2.  Generated 3 columns for the \(1^{st}\), \(2^{nd}\) and \(3^{rd}\)
-    degree orthogonal polynomials of Petal.Length  
-3.  Calculated the Sepal.Width natural cubic spline of with 2 knots.  
-4.  One-hot encoded the Species variable
-
-Now imagine trying to code all of this yourself\! The magic doesn’t end
-here though: We can use the resulting model to generate predictions on
-new sets (that contain at least the variables used for the model fit)
-and the model object will take care of recreating the design matrix
-using the transformation parameters obtained in the model fit stage
-(e.g. knot locations):
-
-``` r
-new_pred <- predict(lm_model, newdata = test_set)
-head(new_pred)
-```
-
-    ##        3        4        5        8        9       11 
-    ## 4.797921 4.837075 5.068098 4.996780 4.698331 5.174826
-
-Doing the same with sklearn transformers for example would’ve taken way
-more effort.
 
 ## sklearn does not support categorical variables in decision trees
 

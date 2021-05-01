@@ -489,48 +489,6 @@ You can read more about mlr3 and tidymodels in this great [blog post](https://me
 While it's hard to compare sklearn with the R packages, it's safe to say R has 
 no shortage of high quality meta-ML packages.
 
-## python has no formula interface for models
-
-I think this is easily one of the most overlooked aspect of R: the formula 
-interface. It makes model fitting and predicting much easier and concise. 
-Using simple symbolic notation the user can define the target and
-predictor variables, as well as all sorts of transformations. Using the formula
-prescription R goes ahead and creates the design matrix, including one-hot 
-encoding string/factor variables, applying transformations and fitting the model. 
-
-See for example:
-
-```{r, eval=T}
-library(splines)
-train_ind <- sample.int(nrow(iris), 100)
-train_set <- iris[train_ind, ]
-test_set <- iris[-train_ind, ]
-lm_model <- lm(Sepal.Length ~ poly(Petal.Length, 3) + ns(Sepal.Width, 2) + Species, data = train_set)
-lm_model
-```
-
-We can see that using a simple formula R went and:
-
-1. Added an intercept column  
-2. Generated 3 columns for the $1^{st}$, $2^{nd}$ and $3^{rd}$ degree orthogonal 
-polynomials of Petal.Length  
-3. Calculated the Sepal.Width natural cubic spline of with 2 knots.  
-4. One-hot encoded the Species variable  
-
-Now imagine trying to code all of this yourself! The magic doesn't end here though:
-We can use the resulting model to generate predictions on new sets (that contain
-at least the variables used for the model fit) and the model object will take 
-care of recreating the design matrix using the transformation parameters obtained
-in the model fit stage (e.g. knot locations):
-
-```{r, eval=T}
-new_pred <- predict(lm_model, newdata = test_set)
-head(new_pred)
-```
-
-
-Doing the same with sklearn transformers for example would've taken way more 
-effort.
 
 ## sklearn does not support categorical variables in decision trees
 
