@@ -1,13 +1,15 @@
 R advantages over python
 ================
 Iyar Lin
-01 May, 2021
+02 May, 2021
 
   - [Motivation](#motivation)
       - [How to contribute](#how-to-contribute)
   - [Working with dplyr is much faster than
     pandas](#working-with-dplyr-is-much-faster-than-pandas)
       - [Aggregation](#aggregation)
+          - [Aggregation with multiple functions on multiple input
+            variables](#aggregation-with-multiple-functions-on-multiple-input-variables)
       - [Window functions](#window-functions)
           - [Aggregation over a window](#aggregation-over-a-window)
           - [Expanding windows](#expanding-windows)
@@ -116,7 +118,9 @@ method:
 
 ``` python
 (
-  iris.groupby('Species').agg({'Sepal.Length':'mean'})
+  iris
+  .groupby('Species')
+  .agg({'Sepal.Length':'mean'})
   .rename({'Sepal.Length':'mean_length'}, axis = 1)
 )
 ```
@@ -186,6 +190,54 @@ overflow.
 weeks would have to search stack overflow/his code base again to find
 the answer next time he needs to do that calculation.
 
+### Aggregation with multiple functions on multiple input variables
+
+Let’s say we’d like to calculate the mean and max sepal length, and the
+min sepal width.
+
+pandas has a very different behavior when the data frame is grouped or
+not. When it’s ungrouped:
+
+``` python
+(
+  iris
+  .agg({'Sepal.Length':['mean', 'max'], 'Sepal.Width':'min'})
+)
+```
+
+    ##       Sepal.Length  Sepal.Width
+    ## max       7.900000          NaN
+    ## mean      5.843333          NaN
+    ## min            NaN          2.0
+
+We can see that the functions were stored in the index while the
+variables on which they were operated on are in the columns. This
+results in all those NaNs.
+
+If we were to apply those functions to a grouped data frame however:
+
+<a name="multi_index"></a>
+
+``` python
+(
+  iris
+  .groupby('Species')
+  .agg({'Sepal.Length':['mean', 'max'], 'Sepal.Width':'min'})
+)
+```
+
+    ##            Sepal.Length      Sepal.Width
+    ##                    mean  max         min
+    ## Species                                 
+    ## setosa            5.006  5.8         2.3
+    ## versicolor        5.936  7.0         2.0
+    ## virginica         6.588  7.9         2.2
+
+Now the grouping variable levels occupy the row index while the
+functions and variables were moved to the column multi index. It prints
+nicely but also begs the question which you’ll have go search stack
+overflow of how do you rename those columns or select them by name.
+
 ## Window functions
 
 ### Aggregation over a window
@@ -244,7 +296,9 @@ In pandas we’ll have to search stack overflow to come up with the
 
 ``` python
 (
-  iris.sort_values(['Species', 'Sepal.Width']).groupby('Species')
+  iris
+  .sort_values(['Species', 'Sepal.Width'])
+  .groupby('Species')
   .expanding().agg({'Sepal.Length': 'sum'})
   .rename({'Sepal.Length':'expanding_sepal_sum'}, axis = 1)
 )
@@ -258,19 +312,23 @@ syntax just wont work:
 
 ``` python
 (
-  iris.sort_values(['Species', 'Sepal.Width']).groupby('Species')
-  .expanding().agg(expanding_sepal_sum = ('Sepal.Length', 'sum'))
+  iris
+  .sort_values(['Species', 'Sepal.Width'])
+  .groupby('Species')
+  .expanding()
+  .agg(expanding_sepal_sum = ('Sepal.Length', 'sum'))
 )
 ```
 
-You could also avoid the additional rename by using the following eye
-sore:
+You could also avoid the additional rename by using the following
+somewhat cumbersome syntax:
 
 ``` python
 (
-  iris.assign(expanding_sepal_sum = lambda x:x.sort_values(['Species', 'Sepal.Width'])
-                .groupby('Species').expanding().agg({'Sepal.Length': 'sum'})
-                .reset_index()['Sepal.Length'])
+  iris
+  .assign(expanding_sepal_sum = lambda x:x.sort_values(['Species', 'Sepal.Width'])
+  .groupby('Species').expanding().agg({'Sepal.Length': 'sum'})
+  .reset_index()['Sepal.Length'])
 )
 ```
 
@@ -300,8 +358,11 @@ documentation and come up with the following:
 
 ``` python
 (
-  iris.sort_values(['Species', 'Sepal.Width']).groupby('Species')
-  .rolling(window = 5, center = True, min_periods = 1).agg({'Sepal.Length': 'mean'})
+  iris
+  .sort_values(['Species', 'Sepal.Width'])
+  .groupby('Species')
+  .rolling(window = 5, center = True, min_periods = 1)
+  .agg({'Sepal.Length': 'mean'})
   .rename({'Sepal.Length':'moving_mean_sepal_length'}, axis = 1)
 )
 ```
@@ -407,9 +468,9 @@ steam](https://iyarlin.medium.com/data-table-speed-with-dplyr-syntax-yes-we-can-
 This one might be a bit subjective, but for me pandas index always seems
 like much more of nuisance than useful. I encourage the reader to check
 how many times they use the *reset\_index* method in their code. Other
-than some niceties relating to how the data frame is printed
-(e.g. nested indeces) I can’t think of a use case where an index is
-really needed.
+than some niceties relating to how the data frame is printed (e.g. multi
+indeces, see [this](#multi_index) for example) I can’t think of a use
+case where an index is really needed.
 
 # Rstudio IDE is way better than jupyter notebooks
 
