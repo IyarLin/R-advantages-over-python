@@ -1,55 +1,55 @@
 R advantages over python
 ================
 Iyar Lin
-02 May, 2021
+04 May, 2021
 
-  - [Motivation](#motivation)
-      - [How to contribute](#how-to-contribute)
-  - [Working with dplyr is much faster than
+-   [Motivation](#motivation)
+    -   [How to contribute](#how-to-contribute)
+-   [Working with dplyr is much faster than
     pandas](#working-with-dplyr-is-much-faster-than-pandas)
-      - [Aggregation](#aggregation)
-          - [Aggregation with multiple functions on multiple input
+    -   [Aggregation](#aggregation)
+        -   [Aggregation with multiple functions on multiple input
             variables](#aggregation-with-multiple-functions-on-multiple-input-variables)
-      - [Window functions](#window-functions)
-          - [Aggregation over a window](#aggregation-over-a-window)
-          - [Expanding windows](#expanding-windows)
-          - [Moving windows](#moving-windows)
-      - [Case when](#case-when)
-      - [pandas is missing variable
+    -   [Window functions](#window-functions)
+        -   [Aggregation over a window](#aggregation-over-a-window)
+        -   [Expanding windows](#expanding-windows)
+        -   [Moving windows](#moving-windows)
+    -   [Case when](#case-when)
+    -   [pandas is missing variable
         autocompletion](#pandas-is-missing-variable-autocompletion)
-      - [When you learn dplyr you can also leverage data.table, spark,
+    -   [When you learn dplyr you can also leverage data.table, spark,
         postgres and many
         others](#when-you-learn-dplyr-you-can-also-leverage-data.table-spark-postgres-and-many-others)
-      - [data.table is way faster than
+    -   [data.table is way faster than
         pandas](#data.table-is-way-faster-than-pandas)
-      - [pandas index](#pandas-index)
-  - [Rstudio IDE is way better than jupyter
+    -   [pandas index](#pandas-index)
+-   [Rstudio IDE is way better than jupyter
     notebooks](#rstudio-ide-is-way-better-than-jupyter-notebooks)
-      - [Code autocompletion](#code-autocompletion)
-      - [Console](#console)
-      - [Running code line by line](#running-code-line-by-line)
-      - [Variable explorer](#variable-explorer)
-      - [Debugger](#debugger)
-      - [Installation and dependency
+    -   [Code autocompletion](#code-autocompletion)
+    -   [Console](#console)
+    -   [Running code line by line](#running-code-line-by-line)
+    -   [Variable explorer](#variable-explorer)
+    -   [Debugger](#debugger)
+    -   [Installation and dependency
         management](#installation-and-dependency-management)
-      - [Table of contents](#table-of-contents)
-      - [Documentation rendering](#documentation-rendering)
-  - [R is just as capable for ML if not better than
+    -   [Table of contents](#table-of-contents)
+    -   [Documentation rendering](#documentation-rendering)
+-   [R is just as capable for ML if not better than
     python](#r-is-just-as-capable-for-ml-if-not-better-than-python)
-      - [sklearn does not support categorical variables in decision
+    -   [sklearn does not support categorical variables in decision
         trees](#sklearn-does-not-support-categorical-variables-in-decision-trees)
-  - [python has no list equivalent
+-   [python has no list equivalent
     class](#python-has-no-list-equivalent-class)
-  - [Package management and
+-   [Package management and
     distribution](#package-management-and-distribution)
-      - [Depndencies management](#depndencies-management)
-      - [Documentation](#documentation)
-  - [Cases where python is better than
+    -   [Depndencies management](#depndencies-management)
+    -   [Documentation](#documentation)
+-   [Cases where python is better than
     R](#cases-where-python-is-better-than-r)
-      - [Cutting edge deep learning](#cutting-edge-deep-learning)
-      - [pySpark is more developed than sparkR/sparklyr
+    -   [Cutting edge deep learning](#cutting-edge-deep-learning)
+    -   [pySpark is more developed than sparkR/sparklyr
         (?)](#pyspark-is-more-developed-than-sparkrsparklyr)
-  - [List backlog](#list-backlog)
+-   [List backlog](#list-backlog)
 
 <br>
 
@@ -95,8 +95,9 @@ at least some of the increase in pandas questions has to do with how
 confusing pandas is. I hope by the end of this section you’ll find merit
 in my hypothesis.
 
-![pandas vs dplyr questions on stack
-overflow](stuff/Screen%20Shot%202021-04-18%20at%2021.44.41.png)
+<figure>
+<img src="stuff/Screen%20Shot%202021-04-18%20at%2021.44.41.png" width="500" alt="pandas vs dplyr questions on stack overflow" /><figcaption aria-hidden="true">pandas vs dplyr questions on stack overflow</figcaption>
+</figure>
 
 <a name="aggregation"></a>
 
@@ -180,13 +181,13 @@ sepal_length_to_width_ratio = (
 ```
 
 We can see that:  
-1\. We have to define a custom function, and it can’t even work for
+1. We have to define a custom function, and it can’t even work for
 general inputs  
 but rather has to have them hard coded.  
-2\. The syntax is super cumbersome and requires searching stack
+2. The syntax is super cumbersome and requires searching stack
 overflow.  
-3\. We need to use *apply* instead of the common *agg* method.  
-4\. I’m pretty sure anyone not using the above code for more than a few
+3. We need to use *apply* instead of the common *agg* method.  
+4. I’m pretty sure anyone not using the above code for more than a few
 weeks would have to search stack overflow/his code base again to find
 the answer next time he needs to do that calculation.
 
@@ -526,7 +527,7 @@ debug a chunk of code. See an example below:
 
 In jupyter notebooks you’d have to copy each line separately to a new
 cell, fix indentation and run it. You can’t even just copy it to a
-console\!.
+console!.
 
 In the above we not only see how easy it is to debug a function in
 Rstudio, we also see a run status bar on the left showing you exactly
@@ -541,10 +542,17 @@ variable explorer which does not exist in jupyter notebooks. Comes handy
 especially when context switching or to dynamically inspect results
 (e.g. number of rows in a filtered dataframe).
 
+I’m using Rstudio version 1.4.1106 and when using the reticulate package
+to work with python I have a variable explorer. At this rate using
+Rstudio would be preferable over jupyter notebooks even when using
+python.
+
+![python variable xplorer](stuff/python_variable_explorer.png)
+
 ## Debugger
 
 Rstudio has a full fledged [visual
-debugger\!](https://support.rstudio.com/hc/en-us/articles/205612627-Debugging-with-RStudio)
+debugger!](https://support.rstudio.com/hc/en-us/articles/205612627-Debugging-with-RStudio)
 The Jupyter blog
 [announced](https://blog.jupyter.org/a-visual-debugger-for-jupyter-914e61716559)
 a visual debugger back in March 2020 but I have yet to see it installed
@@ -647,7 +655,7 @@ rpart(Sepal.Length ~ subspecies, data = iris_for_tree, cp = 0.02)
 We can see that on the first split 2 categories (setosa1,setosa2) went
 down the left node while the rest went to the right - which makes sense
 as there’s no real difference between setosa1 and setosa2. In the end
-the tree split the nodes exactly according to the original species\!
+the tree split the nodes exactly according to the original species!
 
 sklearn however [does not support categorical
 data](https://scikit-learn.org/stable/modules/tree.html#tree-algorithms-id3-c4-5-c5-0-and-cart).
@@ -686,7 +694,7 @@ python_list[2]
 ```
 
 or in a dictionary which allows accessing elements by name but not by
-element index (in fact it has no ordering at all\!)
+element index (in fact it has no ordering at all!)
 
 ``` python
 python_dict = {
@@ -723,7 +731,12 @@ When you pick up a new library in python it’s not rare to need to either
 downgrade or look up very specific library versions that work with the
 one you’re trying to use. This problem is so big that using virtual
 environments becomes almost a necessity in order to have any change of
-managing all the dependencies across different projects.
+managing all the dependencies across different projects. The headache
+doesn’t end there as you’ll need to make sense of which virtual
+environment tool to use: there’s venv, virtualenv, pyenv and many more!
+You can see some of the confusion manifested in this [stack
+overflow](https://stackoverflow.com/questions/41573587/what-is-the-difference-between-venv-pyvenv-pyenv-virtualenv-virtualenvwrappe)
+question.
 
 The *packrat* package in R fulfills the same functionality but one
 rarely **has** to use it. It’s more for maintaining reproducibility.
@@ -777,16 +790,16 @@ engine.
 # List backlog
 
 Below is a list of points I might develop into full examples. Feel free
-to pick one and expand on it\!
+to pick one and expand on it!
 
-  - R has great utilities for package writing - roxygen2 for example.
+-   R has great utilities for package writing - roxygen2 for example.
 
-  - Plotting in R is much better This may be a bit subjective as to
+-   Plotting in R is much better This may be a bit subjective as to
     which graphics look better - ggplot2 or matplotlib/seaborn. python
     has also plotnine but it’s way less feature rich, and does not have
     the myriad of extension package as in r (e.g. gganimate).
 
-  - Many folks like to say that one of python’s greatest advantages is
+-   Many folks like to say that one of python’s greatest advantages is
     that it’s a general programming language. Now, I have to admit I
     don’t understand what that means in practice. But I do feel it’s
     true in the sense that it feels like python wasn’t build for DS from
@@ -796,20 +809,20 @@ to pick one and expand on it\!
     philosophy (pandas, numpy, sklearn, scipy etc). In R it all just
     fits together. Talk about tidyverse in contrast.
 
-  - On the same vain: Vectorized operations in R are natural unlike
+-   On the same vain: Vectorized operations in R are natural unlike
     python loops - Missing concrete examples
 
-  - python copy inplace is really confusing (x = y, if you change y so
+-   python copy inplace is really confusing (x = y, if you change y so
     does x)
 
-  - Rmarkdown greatly expands the ability to communicate results,
+-   Rmarkdown greatly expands the ability to communicate results,
     especially with non technical colleagues. It easily let’s one render
     his Rmd into word, html, md, pdf etc and share those. I have an
     entire site built using Rmarkdown. In order to view ipynb files one
     needs access to github or specialized software.
 
-  - dplyr syntax can be used with multiple backends: spark, postgres,
+-   dplyr syntax can be used with multiple backends: spark, postgres,
     data.table and many others. While some functionality may not be
     supported, it can still save a lot of time.
 
-  - test editing tools in Rstudio are superb (find and replcae etc)
+-   test editing tools in Rstudio are superb (find and replcae etc)

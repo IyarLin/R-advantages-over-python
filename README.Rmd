@@ -477,6 +477,12 @@ In the [previous example](#previuos_example) we could also see a variable explor
 exist in jupyter notebooks. Comes handy especially when context switching or
 to dynamically inspect results (e.g. number of rows in a filtered dataframe).
 
+I'm using Rstudio version 1.4.1106 and when using the reticulate package to work
+with python I have a variable explorer. At this rate using Rstudio would be 
+preferable over jupyter notebooks even when using python.
+
+![python variable xplorer](stuff/python_variable_explorer.png)
+
 ## Debugger
 
 Rstudio has a full fledged [visual debugger!](https://support.rstudio.com/hc/en-us/articles/205612627-Debugging-with-RStudio) The Jupyter blog [announced](https://blog.jupyter.org/a-visual-debugger-for-jupyter-914e61716559)
@@ -638,7 +644,9 @@ When you pick up a new library in python it's not rare to need to either downgra
 or look up very specific library versions that work with the one you're trying
 to use. This problem is so big that using virtual environments becomes almost a
 necessity in order to have any change of managing all the dependencies across different
-projects.
+projects. The headache doesn't end there as you'll need to make sense of which 
+virtual environment tool to use: there's venv, virtualenv, pyenv and many more!
+You can see some of the confusion manifested in this [stack overflow](https://stackoverflow.com/questions/41573587/what-is-the-difference-between-venv-pyvenv-pyenv-virtualenv-virtualenvwrappe) question.
 
 The *packrat* package in R fulfills the same functionality but one rarely **has** 
 to use it. It's more for maintaining reproducibility.
