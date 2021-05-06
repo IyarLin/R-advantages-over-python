@@ -99,6 +99,24 @@ in my hypothesis.
 <img src="stuff/Screen%20Shot%202021-04-18%20at%2021.44.41.png" width="500" alt="pandas vs dplyr questions on stack overflow" /><figcaption aria-hidden="true">pandas vs dplyr questions on stack overflow</figcaption>
 </figure>
 
+## Coalesce
+
+This function finds the first non-missing value at each position similar to SQL coalesce.
+For example we try to extract first non-missing value from 2 fields otherwise return 0.
+In dplyr it makes pretty easy and readable
+
+```{r , echo=FALSE, eval=T}
+df <- tibble(s1=c(NA,NA,6,9,9),s2=c(NA,8,7,9,9))
+df %>% mutate(s3=coalesce(s1,s2,0))
+```
+
+In Python, I got the best and shortest (the rest was just scary) solution from the community Open Data Science from Slack, nevertheless loses to readability and conciseness
+
+```{python, echo=FALSE, eval=T}
+df=pd.DataFrame({'s1':[np.nan,np.nan,6,9,9],'s2':[np.nan,8,7,9,9]})
+df.assign(s3 = df.s1.combine_first(df.s2).fillna(0))
+```
+
 <a name="aggregation"></a>
 
 ## Aggregation
