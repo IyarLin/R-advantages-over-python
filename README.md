@@ -1,7 +1,7 @@
 R advantages over python
 ================
 Iyar Lin
-04 May, 2021
+07 May, 2021
 
 -   [Motivation](#motivation)
     -   [How to contribute](#how-to-contribute)
@@ -15,6 +15,7 @@ Iyar Lin
         -   [Expanding windows](#expanding-windows)
         -   [Moving windows](#moving-windows)
     -   [Case when](#case-when)
+    -   [Coalesce](#coalesce)
     -   [pandas is missing variable
         autocompletion](#pandas-is-missing-variable-autocompletion)
     -   [When you learn dplyr you can also leverage data.table, spark,
@@ -98,24 +99,6 @@ in my hypothesis.
 <figure>
 <img src="stuff/Screen%20Shot%202021-04-18%20at%2021.44.41.png" width="500" alt="pandas vs dplyr questions on stack overflow" /><figcaption aria-hidden="true">pandas vs dplyr questions on stack overflow</figcaption>
 </figure>
-
-## Coalesce
-
-This function finds the first non-missing value at each position similar to SQL coalesce.
-For example we try to extract first non-missing value from 2 fields otherwise return 0.
-In dplyr it makes pretty easy and readable
-
-```{r , echo=FALSE, eval=T}
-df <- tibble(s1=c(NA,NA,6,9,9),s2=c(NA,8,7,9,9))
-df %>% mutate(s3=coalesce(s1,s2,0))
-```
-
-In Python, I got the best and shortest (the rest was just scary) solution from the community Open Data Science from Slack, nevertheless loses to readability and conciseness
-
-```{python, echo=FALSE, eval=T}
-df=pd.DataFrame({'s1':[np.nan,np.nan,6,9,9],'s2':[np.nan,8,7,9,9]})
-df.assign(s3 = df.s1.combine_first(df.s2).fillna(0))
-```
 
 <a name="aggregation"></a>
 
@@ -424,6 +407,42 @@ We can see that:
     outcome one needs to index the conditions and outcomes in his head  
 2.  It can get quite messy to understand which value results from what
     condition if the list of conditions becomes long
+
+## Coalesce
+
+This function finds the first non-missing value at each position similar
+to SQL coalesce.
+
+For example we try to extract first non-missing value from 2 fields
+otherwise return 0. In dplyr it makes pretty easy and readable
+
+``` r
+df <- tibble(s1=c(NA,NA,6,9,9),s2=c(NA,8,7,9,9))
+df %>% mutate(s3=coalesce(s1,s2,0))
+```
+
+    ## # A tibble: 5 x 3
+    ##      s1    s2    s3
+    ##   <dbl> <dbl> <dbl>
+    ## 1    NA    NA     0
+    ## 2    NA     8     8
+    ## 3     6     7     6
+    ## 4     9     9     9
+    ## 5     9     9     9
+
+In pandas the solution is much less readable and concise:
+
+``` python
+df=pd.DataFrame({'s1':[np.nan,np.nan,6,9,9],'s2':[np.nan,8,7,9,9]})
+df.assign(s3 = df.s1.combine_first(df.s2).fillna(0))
+```
+
+    ##     s1   s2   s3
+    ## 0  NaN  NaN  0.0
+    ## 1  NaN  8.0  8.0
+    ## 2  6.0  7.0  6.0
+    ## 3  9.0  9.0  9.0
+    ## 4  9.0  9.0  9.0
 
 ## pandas is missing variable autocompletion
 

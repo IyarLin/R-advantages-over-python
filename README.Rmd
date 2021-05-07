@@ -65,25 +65,8 @@ iris <- read.csv("stuff/iris.csv")
 
 ```{python, echo=FALSE, eval=T}
 import pandas as pd
-import pandas as np
+import numpy as np
 iris = pd.read_csv("stuff/iris.csv")
-```
-## Coalesce
-
-This function finds the first non-missing value at each position similar to SQL coalesce.
-For example we try to extract first non-missing value from 2 fields otherwise return 0.
-In dplyr it makes pretty easy and readable
-
-```{r , echo=FALSE, eval=T}
-df <- tibble(s1=c(NA,NA,6,9,9),s2=c(NA,8,7,9,9))
-df %>% mutate(s3=coalesce(s1,s2,0))
-```
-
-In Python, I got the best and shortest (the rest was just scary) solution from the community Open Data Science from Slack, nevertheless loses to readability and conciseness
-
-```{python, echo=FALSE, eval=T}
-df=pd.DataFrame({'s1':[np.nan,np.nan,6,9,9],'s2':[np.nan,8,7,9,9]})
-df.assign(s3 = df.s1.combine_first(df.s2).fillna(0))
 ```
 
 <a name="aggregation"></a>
@@ -372,6 +355,25 @@ We can see that:
 needs to index the conditions and outcomes in his head    
 2. It can get quite messy to understand which value results from what condition
 if the list of conditions becomes long
+
+## Coalesce
+
+This function finds the first non-missing value at each position similar to SQL coalesce.
+
+For example we try to extract first non-missing value from 2 fields otherwise return 0.
+In dplyr it makes pretty easy and readable
+
+```{r, eval=T}
+df <- tibble(s1=c(NA,NA,6,9,9),s2=c(NA,8,7,9,9))
+df %>% mutate(s3=coalesce(s1,s2,0))
+```
+
+In pandas the solution is much less readable and concise:
+
+```{python, eval  =T}
+df=pd.DataFrame({'s1':[np.nan,np.nan,6,9,9],'s2':[np.nan,8,7,9,9]})
+df.assign(s3 = df.s1.combine_first(df.s2).fillna(0))
+```
 
 ## pandas is missing variable autocompletion 
 
