@@ -680,6 +680,26 @@ for the information you're after.
 R documentation is also [rendered very nicely in the Rstudio IDE](#documentation_render) 
 (not strictly an R feature by itself I admit).
 
+# Vectorization
+
+Vectorized operations in R are natural unlike python loops.
+
+```{r vectorizedR}
+myVector = c(1:5)
+myVector * 2
+```
+Unlike in R where vectorization is natural, in Python one needs to import external modules to accomplish the same task. As the example below shows, in native Python the elements in the list of numbers are not multiplied by 2 but instead the list is doubled. To vectorize code the Numpy module was imported.
+
+```{python vectorizedPy}
+import numpy as np
+
+myList = [1, 2, 3, 4, 5]
+myList * 2
+
+myArray = np.array(myList)
+myArray * 2
+```
+
 <a name="python_better_than_r"></a>
 
 # Cases where python is better than R
@@ -730,7 +750,6 @@ wasn't build for DS from ground up. For that reason mathematical
 constructs are a 2nd class citizens in it. This is most apparent in the amount
 of libraries involved with basic DS operations, each with it's own code philosophy
 (pandas, numpy, sklearn, scipy etc). In R it all just fits together. Talk about tidyverse in contrast.
-- On the same vain: Vectorized operations in R are natural unlike python loops - Missing concrete examples
 
 - python copy inplace is really confusing (x = y, if you change y so does x)
 
