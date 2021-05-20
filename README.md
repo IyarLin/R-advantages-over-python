@@ -1,7 +1,8 @@
 R advantages over python
 ================
 Iyar Lin
-09 May, 2021
+
+19 May, 2021
 
 -   [Motivation](#motivation)
     -   [How to contribute](#how-to-contribute)
@@ -22,9 +23,9 @@ Iyar Lin
         autocompletion](#pandas-is-missing-variable-autocompletion)
     -   [When you learn dplyr you can also leverage data.table, spark,
         postgres and many
-        others](#when-you-learn-dplyr-you-can-also-leverage-data.table-spark-postgres-and-many-others)
+        others](#when-you-learn-dplyr-you-can-also-leverage-datatable-spark-postgres-and-many-others)
     -   [data.table is way faster than
-        pandas](#data.table-is-way-faster-than-pandas)
+        pandas](#datatable-is-way-faster-than-pandas)
     -   [pandas index](#pandas-index)
 -   [Rstudio IDE is way better than jupyter
     notebooks](#rstudio-ide-is-way-better-than-jupyter-notebooks)
@@ -47,11 +48,12 @@ Iyar Lin
     distribution](#package-management-and-distribution)
     -   [Depndencies management](#depndencies-management)
     -   [Documentation](#documentation)
+-   [Vectorization](#vectorization)
 -   [Cases where python is better than
     R](#cases-where-python-is-better-than-r)
     -   [Cutting edge deep learning](#cutting-edge-deep-learning)
     -   [pySpark is more developed than sparkR/sparklyr
-        (?)](#pyspark-is-more-developed-than-sparkrsparklyr)
+        (?)](#pyspark-is-more-developed-than-sparkrsparklyr-)
 -   [List backlog](#list-backlog)
 
 <br>
@@ -905,6 +907,31 @@ R documentation is also [rendered very nicely in the Rstudio
 IDE](#documentation_render) (not strictly an R feature by itself I
 admit).
 
+# Vectorization
+
+Vectorized operations in R are natural unlike python loops.
+
+``` r
+myVector = c(1:5)
+myVector * 2
+```
+
+Unlike in R where vectorization is natural, in Python one needs to
+import external modules to accomplish the same task. As the example
+below shows, in native Python the elements in the list of numbers are
+not multiplied by 2 but instead the list is doubled. To vectorize code
+the Numpy module was imported.
+
+``` python
+import numpy as np
+
+myList = [1, 2, 3, 4, 5]
+myList * 2
+
+myArray = np.array(myList)
+myArray * 2
+```
+
 <a name="python_better_than_r"></a>
 
 # Cases where python is better than R
@@ -961,9 +988,6 @@ to pick one and expand on it!
     involved with basic DS operations, each with it’s own code
     philosophy (pandas, numpy, sklearn, scipy etc). In R it all just
     fits together. Talk about tidyverse in contrast.
-
--   On the same vain: Vectorized operations in R are natural unlike
-    python loops - Missing concrete examples
 
 -   python copy inplace is really confusing (x = y, if you change y so
     does x)
