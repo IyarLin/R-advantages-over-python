@@ -1,6 +1,7 @@
 R advantages over python
 ================
 Iyar Lin
+
 19 May, 2021
 
 -   [Motivation](#motivation)
@@ -8,8 +9,10 @@ Iyar Lin
 -   [Working with dplyr is much faster than
     pandas](#working-with-dplyr-is-much-faster-than-pandas)
     -   [Aggregation](#aggregation)
-        -   [Aggregation with multiple functions on multiple input
-            variables](#aggregation-with-multiple-functions-on-multiple-input-variables)
+        -   [Multiple input variables (weighted average
+            example)](#multiple-input-variables-weighted-average-example)
+        -   [Multiple functions on multiple input
+            variables](#multiple-functions-on-multiple-input-variables)
     -   [Window functions](#window-functions)
         -   [Aggregation over a window](#aggregation-over-a-window)
         -   [Expanding windows](#expanding-windows)
@@ -105,6 +108,10 @@ in my hypothesis.
 
 ## Aggregation
 
+This section will demonstrate that pandas syntax really contrasts with
+the principle from Zen of python: “There should be one— and preferably
+only one —obvious way to do it”.
+
 We’ll start with a simple example: calculate the mean Sepal length
 within each species in the iris dataset.
 
@@ -136,10 +143,21 @@ We can avoid the additional *rename* by passing a tuple to *agg*:
 iris.groupby('Species').agg(mean_length = ('Sepal.Length', 'mean'))
 ```
 
-While this looks much closer to the dplyr syntax, it also highlights the
-fact there’s multiple ways of using the *agg* method - contrary to
-common wisdom that in R there are many ways to do the same thing while
-in python there’s only a single obvious way.
+When aggregating over a single column we could pass a string rather than
+a tuple like so:
+
+``` python
+iris.groupby('Species')['Sepal.Length'].agg(mean_length = 'mean')
+```
+
+When aggregating over a single column with a function that is also a
+DataFrame method one could skip the *agg* method altogether using:
+
+``` python
+iris.groupby('Species')['Sepal.Length'].mean()
+```
+
+### Multiple input variables (weighted average example)
 
 Now let’s say we’d like to use a weighted average (with sepal width as
 weights).
@@ -162,10 +180,29 @@ iris %>%
   summarize(weighted_mean_length = sum(Sepal.Length * Sepal.Width) / sum(Sepal.Width))
 ```
 
-In pandas it’s not so simple. One can’t just tweak the above examples.
-To come up with a pandas version I had to search stack overflow and
-based on [this](https://stackoverflow.com/a/10964938/5472037) and
-[this](https://stackoverflow.com/a/47103408/5472037) answers I got:
+In pandas I found an
+[answer](https://stackoverflow.com/questions/10951341/pandas-dataframe-aggregate-function-using-multiple-columns/10964938#10964938)
+which got 104 upvotes on stack overflow:
+
+``` python
+def weighted_mean(group):
+    d = {}
+    x = group['Sepal.Length']
+    w = group['Sepal.Width']
+    d['weighted_mean_length'] = (x * w).sum() / w.sum()
+    return (x * w).sum() / w.sum()
+
+(
+  iris
+  .groupby('Species')
+  .apply(weighted_mean)
+)
+```
+
+Problem is - we get back a series, not a DataFrame. I’ve searched stack
+overflow some more and combined the above with this
+[answer](https://stackoverflow.com/questions/14529838/apply-multiple-functions-to-multiple-groupby-columns/47103408#47103408)
+(look how long it is!) to get the following:
 
 ``` python
 def weighted_mean(group):
@@ -175,7 +212,7 @@ def weighted_mean(group):
     d['weighted_mean_length'] = (x * w).sum() / w.sum()
     return pd.Series(d, index=['weighted_mean_length'])
 
-sepal_length_to_width_ratio = (
+(
   iris
   .groupby('Species')
   .apply(weighted_mean)
@@ -186,14 +223,48 @@ We can see that:
 1. We have to define a custom function, and it can’t even work for
 general inputs  
 but rather has to have them hard coded.  
-2. The syntax is super cumbersome and requires searching stack
-overflow.  
+2. The syntax is super cumbersome and requires searching stack overflow
+extensively.  
 3. We need to use *apply* instead of the common *agg* method.  
 4. I’m pretty sure anyone not using the above code for more than a few
 weeks would have to search stack overflow/his code base again to find
 the answer next time he needs to do that calculation.
 
-### Aggregation with multiple functions on multiple input variables
+Following a [Christophe’s](https://medium.com/@christopherpynn) comment
+on my Medium post I found out there’s a much simpler solution:
+
+``` python
+(
+  iris
+  .groupby('Species')
+  .apply(lambda x: pd.Series({'weighted_mean_length': 
+    np.average(x['Sepal.Length'], weights = x['Sepal.Width'])}))
+)
+```
+
+Quite surprising given the amount of upvotes those stack overflow
+answers got.
+
+Another comment by [Samuel
+Oranyeli](https://gist.github.com/samukweku/88272c539743e9507dd275e1d2d71018)
+revealed one could actually use the *pipe* method like so:
+
+``` python
+(
+  iris
+  .assign(weighted_sum = iris['Sepal.Length'].mul(iris['Sepal.Width']))
+  .groupby('Species')
+  .pipe(lambda df: df.weighted_sum.sum()/df['Sepal.Width'].sum())
+)
+```
+
+So… using yet another new method: *pipe*, which quite frankly I have a
+hard time understanding how is different than *apply*. (There’s an
+active stack overflow
+[question](https://stackoverflow.com/questions/47226407/pandas-groupby-pipe-vs-apply#:~:text=1%20Answer&text=What%20pipe%20does%20is%20to,that%20was%20passed%20to%20apply%20.)
+on that).
+
+### Multiple functions on multiple input variables
 
 Let’s say we’d like to calculate the mean and max sepal length, and the
 min sepal width.
@@ -272,8 +343,23 @@ iris %>%
   mutate(mean_sepal = weighted.mean(Sepal.Length, Sepal.Width))
 ```
 
-I wasn’t able to come up with a way to use a function with more than 1
-input such as weighted mean in pandas.
+Thanks to [Samuel
+Oranyeli](https://gist.github.com/samukweku/88272c539743e9507dd275e1d2d71018)
+I now know this can be achieved in pandas using:
+
+``` python
+(
+  iris
+  .assign(weighted_sum = iris['Sepal.Length'].mul(iris['Sepal.Width']), 
+             mean_sepal = lambda df: df.groupby('Species')
+                                       .pipe(lambda df: df.weighted_sum.transform('sum')/
+                                                        df['Sepal.Width'].transform('sum'))
+                                            )
+     .drop(columns = "weighted_sum")
+)
+```
+
+You can judge for yourself how elegant or straightforward this is.
 
 ### Expanding windows
 
@@ -335,6 +421,21 @@ somewhat cumbersome syntax:
 )
 ```
 
+Yet another way of doing it (credit to [Samuel
+Oranyeli](https://gist.github.com/samukweku/88272c539743e9507dd275e1d2d71018))
+would be:
+
+``` python
+(
+  iris
+  .sort_values(["Species", "Sepal.Width"])
+  .assign(expanding_sepal_sum = lambda df: df.groupby("Species")['Sepal.Length']
+                                                .expanding()
+                                                .sum()
+                                                .array)
+)
+```
+
 ### Moving windows
 
 Now let’s say we’d like to calculate a moving central window mean (in
@@ -370,6 +471,21 @@ documentation and come up with the following:
 )
 ```
 
+Yet another way of doing it (credit to [Samuel
+Oranyeli](https://gist.github.com/samukweku/88272c539743e9507dd275e1d2d71018))
+would be:
+
+``` python
+(
+  iris
+  .sort_values(["Species", "Sepal.Width"])
+  .assign(expanding_sepal_sum = lambda df: df.groupby("Species")['Sepal.Length']
+                                                .rolling(window=5, center=True, min_periods=1)
+                                                .mean()
+                                                .array)
+)
+```
+
 ## Case when
 
 Below we can see an example of using a case when statement in dplyr:
@@ -384,7 +500,8 @@ iris %>%
   ))
 ```
 
-pandas on the other hand has no dedicated case when function. It uses
+pandas on the other hand [has no dedicated case when
+function](https://github.com/pandas-dev/pandas/issues/39154). It uses
 the **numpy** *select*:
 
 ``` python
