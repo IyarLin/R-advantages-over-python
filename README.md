@@ -1,8 +1,7 @@
 R advantages over python
 ================
 Iyar Lin
-
-19 May, 2021
+07 June, 2021
 
 -   [Motivation](#motivation)
     -   [How to contribute](#how-to-contribute)
@@ -32,6 +31,7 @@ Iyar Lin
     -   [Code autocompletion](#code-autocompletion)
     -   [Console](#console)
     -   [Running code line by line](#running-code-line-by-line)
+    -   [Table viewing is interactive](#table-viewing-is-interactive)
     -   [Variable explorer](#variable-explorer)
     -   [Debugger](#debugger)
     -   [Installation and dependency
@@ -690,6 +690,18 @@ where the error occurred when running the chunk as a whole (which can
 also be useful when running big chunks to know where in the chunk your
 code runs right now).
 
+Using Rstudio version 1.4.1106 on Mac I can also run python code line by
+line.
+
+## Table viewing is interactive
+
+When viewing tables with lots of rows it’s useful to be able to scroll
+them row wise:
+
+![table view](stuff/table_view.gif)
+
+In jupyter you can only scroll column wise.
+
 ## Variable explorer
 
 In the [previous example](#previuos_example) we could also see a
@@ -971,6 +983,8 @@ engine.
 
 Below is a list of points I might develop into full examples. Feel free
 to pick one and expand on it!
+
+-   
 
 -   R has great utilities for package writing - roxygen2 for example.
 
