@@ -915,7 +915,8 @@ deploy pretty much every R ML package using the Spark engine.
 Below is a list of points I might develop into full examples. Feel free to pick
 one and expand on it!
 
-- 
+- Add to pandas index section the annoying part of assigning values to a dataframe
+slice. See this https://stackoverflow.com/questions/20625582/how-to-deal-with-settingwithcopywarning-in-pandas
 
 - R has great utilities for package writing - roxygen2 for
 example. 
