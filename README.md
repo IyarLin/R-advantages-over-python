@@ -1,7 +1,7 @@
 R advantages over python
 ================
 Iyar Lin
-07 June, 2021
+10 June, 2021
 
 -   [Motivation](#motivation)
     -   [How to contribute](#how-to-contribute)
@@ -921,28 +921,114 @@ admit).
 
 # Vectorization
 
-Vectorized operations in R are natural unlike python loops.
+In R the basic objects are all vectors and thus vectorized operations
+are natural. In python however the basic objects are lists so one has to
+either use list comprehensions which are less readable and slower or
+convert the lists to numpy arrays to get the same vectorization
+capabilities.
+
+For example let’s say we’d like to multiply all elements of a vector by
+2. In R:
 
 ``` r
-myVector = c(1:5)
+myVector <- 1:5
 myVector * 2
 ```
 
-Unlike in R where vectorization is natural, in Python one needs to
-import external modules to accomplish the same task. As the example
-below shows, in native Python the elements in the list of numbers are
-not multiplied by 2 but instead the list is doubled. To vectorize code
-the Numpy module was imported.
+    ## [1]  2  4  6  8 10
+
+Doing the same for a list would look like this:
+
+``` python
+myList = [1,2,3,4,5]
+[i*2 for i in myList]
+```
+
+    ## [2, 4, 6, 8, 10]
+
+This can be really slow for very large vectors. We could import the
+numpy module to get the same functionality:
 
 ``` python
 import numpy as np
-
-myList = [1, 2, 3, 4, 5]
-myList * 2
-
-myArray = np.array(myList)
-myArray * 2
+myVector = np.arange(1,6,1) # notice how the "to" argument is 6 rather than 5.
+myVector * 2
 ```
+
+    ## array([ 2,  4,  6,  8, 10])
+
+Here’s another example: Suppose we’d like to pick elements of a vector
+based on another boolean/index vector. In R:
+
+``` r
+indexVector <- 1:5
+valueVector <- LETTERS[indexVector]
+greaterThan2 <- indexVector > 2
+valueVector[greaterThan2]
+```
+
+    ## [1] "C" "D" "E"
+
+Using python lists isn’t so straight forward. Based on this stack
+overflow [answer](https://stackoverflow.com/a/3179119) (which got 147
+upvotes - to a question that got 113 upvotes as of 10.6.2021) you’d need
+to use list comprehension like so:
+
+``` python
+indexVector = [1,2,3,4,5]
+valueVector = [r.LETTERS[i - 1] for i in indexVector]
+greaterThan2 = [indexVector[i] > 2 for i in range(len(indexVector))]
+[val for is_good, val in zip(greaterThan2, valueVector) if is_good]
+```
+
+    ## ['C', 'D', 'E']
+
+Way less elegant and possibly slow for large vectors. It’s so un-elegant
+that a special function was written to accomplish the task:
+
+``` python
+from itertools import compress
+list(compress(valueVector, greaterThan2))
+```
+
+    ## ['C', 'D', 'E']
+
+Even that solution is pretty cumbersome compared with the R native way
+of doing it.
+
+Alternatively, one could use numpy to enjoy vectorization:
+
+``` python
+import numpy as np
+indexVector = np.arange(1,6)
+valueVector = np.array(r.LETTERS)[indexVector]
+greaterThan2 = indexVector > 2
+valueVector[greaterThan2]
+```
+
+    ## array(['D', 'E', 'F'], dtype='<U1')
+
+Do note however that numpy can’t help you if the vector you’re working
+with is made up of different types of elements (e.g. strings and
+numbers). In R you can use lists and still enjoy vectorization:
+
+``` r
+valueVector <- list("a", 1, c(1,2,3), "wow", list("sweet", 2))
+valueVector[greaterThan2]
+```
+
+    ## [[1]]
+    ## [1] 1 2 3
+    ## 
+    ## [[2]]
+    ## [1] "wow"
+    ## 
+    ## [[3]]
+    ## [[3]][[1]]
+    ## [1] "sweet"
+    ## 
+    ## [[3]][[2]]
+    ## [1] 2
 
 <a name="python_better_than_r"></a>
 
