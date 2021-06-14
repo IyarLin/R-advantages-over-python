@@ -915,6 +915,10 @@ deploy pretty much every R ML package using the Spark engine.
 Below is a list of points I might develop into full examples. Feel free to pick
 one and expand on it!
 
+- A point for python: Classes are easier to understand compared with S3 as the membership definition
+is more transparently tied to the class. Also figuring out which methods exist for
+a given class can be challenging in R.
+
 - Add to pandas index section the annoying part of assigning values to a dataframe
 slice. See this https://stackoverflow.com/questions/20625582/how-to-deal-with-settingwithcopywarning-in-pandas
 
