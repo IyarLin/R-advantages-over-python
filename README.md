@@ -1144,7 +1144,7 @@ tourism %>% semi_join(unusual) %>% autoplot()
 ```
 
 I wonder how many screens of code will be needed on python to repeat all this?
-**P.S.** All that python can offer in response at the moment is an [pmdarima](https://pypi.org/project/pmdarima/) it is just the equivalent of auto.arima in R
+**P.S.** All that python can offer in response at the moment it is just the equivalent of auto.arima in R [pmdarima](https://pypi.org/project/pmdarima/) with a funny phrase in its documentation ["making an even stronger case for why you don’t need R for data science"](https://alkaline-ml.com/pmdarima/)
 
 
 
