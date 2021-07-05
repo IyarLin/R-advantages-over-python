@@ -1,7 +1,7 @@
 R advantages over python
 ================
 Iyar Lin
-10 June, 2021
+05 July, 2021
 
 -   [Motivation](#motivation)
     -   [How to contribute](#how-to-contribute)
@@ -42,6 +42,9 @@ Iyar Lin
     python](#r-is-just-as-capable-for-ml-if-not-better-than-python)
     -   [sklearn does not support categorical variables in decision
         trees](#sklearn-does-not-support-categorical-variables-in-decision-trees)
+-   [Time series](#time-series)
+    -   [Feature extraction for clustering or search unusual time
+        series](#feature-extraction-for-clustering-or-search-unusual-time-series)
 -   [python has no list equivalent
     class](#python-has-no-list-equivalent-class)
 -   [Package management and
@@ -833,6 +836,287 @@ bad splits with the same specie in different leaves. This can have
 serious implications, especially in cases where categories with a large
 number of levels are present in the dataset.
 
+# Time series
+
+While some effort is underway to close the gap (see for example
+[pmdarima](https://github.com/alkaline-ml/pmdarima) package which aims
+to imitate R’s auto.arima) python’s packages for time series analysis,
+especially in more classic contexts like exponential smoothing are still
+way less developed.
+
+Of course,there are models of classical arima and models from the family
+of exponential smoothing (ETS) in statmodels,but they all require
+painstaking manual settings of hyperparameters (p, d,q,P, D, Q) of each
+time series or parameters from the family of exponential models.
+
+The realities of forecasting in the conditions of modern business are
+such that there are many (very many) time series, they are all of
+different lengths, many of them are far from stationary and often
+contain omissions and statistical outliers.
+
+A single framework is required that could decide for itself for each
+time series what is more appropriate model (ARIMA, regression, theta,
+prophet or one of the representatives of the ETC family) not to mention
+not to manually configure the parameters of ARIMA/ETC/… for each time
+series.
+
+This framework should contain convenient tools for visualizing a variety
+of time series and model prediction results, and the code should be
+concise and readable (which is not enough in python)
+
+This framework should contain convenient tools for cross-validation of
+time series and building different models for each time series in
+conditions when there are many time series.
+
+This framework should have tools for hierarchical forecasting: this is
+when the time series of the detailed (lower) level are aggregated to
+different levels up in time (per week, month, year), by product (brand,
+category, etc.) or by customers (staff, sales channel, etc.) and then
+the models, having learned at the levels above, transmit the found
+patterns to the models of the lower level, which they cannot see from
+their height.
+
+This framework should be able to extract characteristics from each time
+series (regardless of their length and nature) so that later clustering
+of time series can be done based on these characteristics.
+
+This collection of packages is called
+[tydieverts](https://tidyverts.org/) and the book was written by Rob
+Hyndman, well-known in the circles of forecasting specialists, already
+the 3rd edition [Forecasting: Principles and
+Practice](https://otexts.com/fpp3/) in accordance with the evolution of
+packages. (By the way, statmodels likes to refer to this author in the
+help for their forecasting functions).
+
+The concept of the tydiverts ecosystem is completely identical to the
+concept of the [tidyverse](https://www.tidyverse.org/) ecosystem and,
+accordingly, everything is compatible between these two families, which
+gives explosive performance and code readability.
+
+Below is an example of forecasting a set of time series by a set of
+models based on the fable package
+
+``` r
+pckgs <- c('fable','fable.prophet','tsibble','feasts')
+# install.packages(pckgs) # install packages of 'tidyverts' ecosystem
+lapply(X = c(pckgs,'tidyverse'), FUN = library, character.only = TRUE) # load 'tidyverts' + 'tidyverse' packages
+```
+
+``` r
+# extract and filter multiple timeseries data frame from tsibble datasets
+data(tourism,package = 'tsibble')
+tourism_melb <- tourism %>% filter(Region == "Melbourne",State=="Victoria") %>% select(-Region,-State)
+tourism_melb # you can see "Key: Purpose" in title (4 time series groups:Business,Holiday,Visiting,Other), see tsibble docs about create key
+```
+
+    ## # A tsibble: 320 x 3 [1Q]
+    ## # Key:       Purpose [4]
+    ##    Quarter Purpose  Trips
+    ##      <qtr> <chr>    <dbl>
+    ##  1 1998 Q1 Business  405.
+    ##  2 1998 Q2 Business  408.
+    ##  3 1998 Q3 Business  486.
+    ##  4 1998 Q4 Business  429.
+    ##  5 1999 Q1 Business  361.
+    ##  6 1999 Q2 Business  486.
+    ##  7 1999 Q3 Business  359.
+    ##  8 1999 Q4 Business  426.
+    ##  9 2000 Q1 Business  495.
+    ## 10 2000 Q2 Business  499.
+    ## # … with 310 more rows
+
+``` r
+tourism_melb %>% autoplot(.vars = Trips) # plot multiple timeseries in on line of code
+```
+
+![](README_files/figure-gfm/unnamed-chunk-34-1.png)<!-- -->
+
+``` r
+train <- tourism_melb %>% filter_index(~'2015 Q4') # filter time series from start to 4Q 2015
+fit <- train %>% # create multiple AUTO-tuning models for each time series by tsibble key
+  model(
+    ets = ETS(Trips ~ trend("A")), # auto Exponential models (HOLT, HOLT-Winters,...etc)
+    arima = ARIMA(Trips), # auto ARIMA
+    snaive=SNAIVE(Trips), # seasonal NAIVE
+    #tslm=TSLM(log(Trips)~ trend() + season()),  # YOU MAY (UN)COMMENT ANY MODEL WITHOUT CODE CORRECTION BELOW!!! (regression with trend + seasonal)
+    theta=THETA(Trips), # theta model
+    prophet=prophet(Trips~ season("year", 4, type = "multiplicative"))
+    ) %>% 
+  mutate(combine=(ets+arima+snaive+prophet+theta)/5) # create model ensemble
+fit
+```
+
+    ## # A mable: 4 x 7
+    ## # Key:     Purpose [4]
+    ##   Purpose           ets        arima   snaive   theta   prophet       combine
+    ##   <chr>         <model>      <model>  <model> <model>   <model>       <model>
+    ## 1 Business <ETS(A,A,A)> <NULL model> <SNAIVE> <THETA> <prophet> <COMBINATION>
+    ## 2 Holiday  <ETS(M,A,A)> <NULL model> <SNAIVE> <THETA> <prophet> <COMBINATION>
+    ## 3 Other    <ETS(M,A,N)> <NULL model> <SNAIVE> <THETA> <prophet> <COMBINATION>
+    ## 4 Visiting <ETS(A,A,A)> <NULL model> <SNAIVE> <THETA> <prophet> <COMBINATION>
+
+``` r
+fc <- fit %>% forecast(h = "2 years") # create forecasts from each model for each timeseries
+fc
+```
+
+    ## # A fable: 192 x 5 [1Q]
+    ## # Key:     Purpose, .model [24]
+    ##    Purpose  .model Quarter        Trips .mean
+    ##    <chr>    <chr>    <qtr>       <dist> <dbl>
+    ##  1 Business ets    2016 Q1 N(470, 3380)  470.
+    ##  2 Business ets    2016 Q2 N(546, 3470)  546.
+    ##  3 Business ets    2016 Q3 N(562, 3560)  562.
+    ##  4 Business ets    2016 Q4 N(530, 3651)  530.
+    ##  5 Business ets    2017 Q1 N(475, 3741)  475.
+    ##  6 Business ets    2017 Q2 N(551, 3831)  551.
+    ##  7 Business ets    2017 Q3 N(567, 3922)  567.
+    ##  8 Business ets    2017 Q4 N(535, 4012)  535.
+    ##  9 Business arima  2016 Q1           NA   NA 
+    ## 10 Business arima  2016 Q2           NA   NA 
+    ## # … with 182 more rows
+
+``` r
+fc %>% autoplot(tourism_melb) # plot forecast and actual values by one line of code
+```
+
+![](README_files/figure-gfm/unnamed-chunk-36-1.png)<!-- -->
+
+``` r
+ac <- fc %>% accuracy(data = tourism_melb,measures = list(mape=MAPE, rmse=RMSE)) %>% 
+  relocate(Purpose,.before = .model)%>% arrange(Purpose,rmse) # evaluate models accuracy by test period (>'2015 Q4')
+ac
+```
+
+    ## # A tibble: 24 x 5
+    ##    Purpose  .model  .type   mape  rmse
+    ##    <chr>    <chr>   <chr>  <dbl> <dbl>
+    ##  1 Business prophet Test   11.4   84.0
+    ##  2 Business snaive  Test   15.1  111. 
+    ##  3 Business ets     Test   15.2  116. 
+    ##  4 Business theta   Test   16.0  122. 
+    ##  5 Business arima   Test  NaN    NaN  
+    ##  6 Business combine Test  NaN    NaN  
+    ##  7 Holiday  prophet Test    7.27  72.4
+    ##  8 Holiday  ets     Test    7.78  76.7
+    ##  9 Holiday  theta   Test    7.91  84.3
+    ## 10 Holiday  snaive  Test    9.46  88.7
+    ## # … with 14 more rows
+
+``` r
+best_ac <- ac %>% group_by(Purpose) %>% arrange(rmse) %>% slice(1) %>% ungroup() # get best model for each time series by min(rmse)
+best_ac # we can see that for 'Business' and 'Holiday'  it prophet, for 'Other' and 'Visiting' - ARIMA 
+```
+
+    ## # A tibble: 4 x 5
+    ##   Purpose  .model  .type  mape  rmse
+    ##   <chr>    <chr>   <chr> <dbl> <dbl>
+    ## 1 Business prophet Test  11.4   84.0
+    ## 2 Holiday  prophet Test   7.27  72.4
+    ## 3 Other    ets     Test   7.60  14.1
+    ## 4 Visiting prophet Test  11.2  101.
+
+``` r
+fc_bestmodels <- fc %>% inner_join(best_ac,by = c('Purpose','.model')) %>% tibble() %>% 
+  select(Purpose,  Quarter, frcst_val = .mean,.model) # get best forecast values
+fc_bestmodels
+```
+
+    ## # A tibble: 32 x 4
+    ##    Purpose  Quarter frcst_val .model 
+    ##    <chr>      <qtr>     <dbl> <chr>  
+    ##  1 Business 2016 Q1      478. prophet
+    ##  2 Business 2016 Q2      565. prophet
+    ##  3 Business 2016 Q3      609. prophet
+    ##  4 Business 2016 Q4      574. prophet
+    ##  5 Business 2017 Q1      493. prophet
+    ##  6 Business 2017 Q2      588. prophet
+    ##  7 Business 2017 Q3      628. prophet
+    ##  8 Business 2017 Q4      586. prophet
+    ##  9 Holiday  2016 Q1      688. prophet
+    ## 10 Holiday  2016 Q2      622. prophet
+    ## # … with 22 more rows
+
+## Feature extraction for clustering or search unusual time series
+
+Below is a small example of how to use the [feasts
+package](https://feasts.tidyverts.org/) extract characteristics from
+time series for their subsequent clustering or search for unusual
+examples after dimension compression
+
+``` r
+# https://robjhyndman.com/hyndsight/fbtsa/
+# Compute features
+tourism # 304 timeseries (key[304] in table title)
+```
+
+    ## # A tsibble: 24,320 x 5 [1Q]
+    ## # Key:       Region, State, Purpose [304]
+    ##    Quarter Region   State           Purpose  Trips
+    ##      <qtr> <chr>    <chr>           <chr>    <dbl>
+    ##  1 1998 Q1 Adelaide South Australia Business  135.
+    ##  2 1998 Q2 Adelaide South Australia Business  110.
+    ##  3 1998 Q3 Adelaide South Australia Business  166.
+    ##  4 1998 Q4 Adelaide South Australia Business  127.
+    ##  5 1999 Q1 Adelaide South Australia Business  137.
+    ##  6 1999 Q2 Adelaide South Australia Business  200.
+    ##  7 1999 Q3 Adelaide South Australia Business  169.
+    ##  8 1999 Q4 Adelaide South Australia Business  134.
+    ##  9 2000 Q1 Adelaide South Australia Business  154.
+    ## 10 2000 Q2 Adelaide South Australia Business  169.
+    ## # … with 24,310 more rows
+
+``` r
+tourism_features <- tourism %>% features(Trips, feature_set(pkgs="feasts"))
+tourism_features # 50(!!!) features extracted for each time series by 1 line of code
+```
+
+    ## # A tibble: 304 x 45
+    ##    Region    State     Purpose trend_strength seasonal_strengt… seasonal_peak_y…
+    ##    <chr>     <chr>     <chr>            <dbl>             <dbl>            <dbl>
+    ##  1 Adelaide  South Au… Busine…          0.464             0.407                3
+    ##  2 Adelaide  South Au… Holiday          0.554             0.619                1
+    ##  3 Adelaide  South Au… Other            0.746             0.202                2
+    ##  4 Adelaide  South Au… Visiti…          0.435             0.452                1
+    ##  5 Adelaide… South Au… Busine…          0.464             0.179                3
+    ##  6 Adelaide… South Au… Holiday          0.528             0.296                2
+    ##  7 Adelaide… South Au… Other            0.593             0.404                2
+    ##  8 Adelaide… South Au… Visiti…          0.488             0.254                0
+    ##  9 Alice Sp… Northern… Busine…          0.534             0.251                0
+    ## 10 Alice Sp… Northern… Holiday          0.381             0.832                3
+    ## # … with 294 more rows, and 39 more variables: seasonal_trough_year <dbl>,
+    ## #   spikiness <dbl>, linearity <dbl>, curvature <dbl>, stl_e_acf1 <dbl>,
+    ## #   stl_e_acf10 <dbl>, acf1 <dbl>, acf10 <dbl>, diff1_acf1 <dbl>,
+    ## #   diff1_acf10 <dbl>, diff2_acf1 <dbl>, diff2_acf10 <dbl>, season_acf1 <dbl>,
+    ## #   pacf5 <dbl>, diff1_pacf5 <dbl>, diff2_pacf5 <dbl>, season_pacf <dbl>,
+    ## #   zero_run_mean <dbl>, nonzero_squared_cv <dbl>, zero_start_prop <dbl>,
+    ## #   zero_end_prop <dbl>, lambda_guerrero <dbl>, nsdiffs <int>, bp_stat <dbl>,
+    ## #   bp_pvalue <dbl>, lb_stat <dbl>, lb_pvalue <dbl>, var_tiled_var <dbl>,
+    ## #   var_tiled_mean <dbl>, shift_level_max <dbl>, shift_level_index <dbl>,
+    ## #   shift_var_max <dbl>, shift_var_index <dbl>, shift_kl_max <dbl>,
+    ## #   shift_kl_index <dbl>, spectral_entropy <dbl>, n_crossing_points <int>,
+    ## #   longest_flat_spot <int>, stat_arch_lm <dbl>
+
+``` r
+# Unusual time series can be identified by first doing a principal components decomposition
+pcs <- tourism_features %>% select(-State, -Region, -Purpose) %>% prcomp(scale=TRUE) %>% augment(tourism_features) 
+pcs %>% ggplot(aes(x=.fittedPC1, y=.fittedPC2, col=Purpose)) + geom_point() + theme(aspect.ratio=1)
+```
+
+![](README_files/figure-gfm/unnamed-chunk-40-1.png)<!-- -->
+
+``` r
+# We can then identify some unusual series.
+unusual <- pcs %>% filter(.fittedPC1 > 10.5) %>% select(Region, State, Purpose, .fittedPC1, .fittedPC2)
+
+# plot unusual time series by 1 line of code
+tourism %>% semi_join(unusual) %>% autoplot()
+```
+
+![](README_files/figure-gfm/unnamed-chunk-41-1.png)<!-- -->
+
+Achieving the same with python would’ve taken much more code and effort.
+
 # python has no list equivalent class
 
 In R the list data structure let’s one store arbitrary objects in a
@@ -1065,95 +1349,19 @@ having pandas UDF, but now I’m not entirely sure as I just read a
 about how to deploy pretty much every R ML package using the Spark
 engine.
 
-# Time series workflow
-
-## Forecasting
-
-  If we talk about forecasting not from the point of view of the machine learning problem (when time series are enriched with time lags are transformed into an autoregression problem and solved by gradient boosting methods) and from the point of view of classical forecasting methods, python is far behind R (of course there is a Prophet in python, but there is also a prophet in R, so this is not about that).
-
-  Of course,there are models of classical arima and models from the family of exponential smoothing (ETS) in statmodels,but they all require painstaking manual settings of hyperparameters (p, d,q,P, D, Q) of each time series or parameters from the family of exponential models.
-
-  The realities of forecasting in the conditions of modern business are such that there are many (very many) time series, they are all of different lengths, many of them are far from stationary and often contain omissions and statistical outliers.
-
-  A single framework is required that could decide for itself for each time series what is more appropriate model (ARIMA, regression, theta, prophet or one of the representatives of the ETC family) not to mention not to manually configure the parameters of ARIMA/ETC/... for each time series. 
-  This framework should contain convenient tools for visualizing a variety of time series and model prediction results, and the code should be concise and readable (which is not enough in python)
-This framework should contain convenient tools for cross-validation of time series and building different models for each time series in conditions when there are many time series.
-This framework should have tools for hierarchical forecasting: this is when the time series of the detailed (lower) level are aggregated to different levels up in time (per week, month, year), by product (brand, category, etc.) or by customers (staff, sales channel, etc.) and then the models, having learned at the levels above, transmit the found patterns to the models of the lower level, which they cannot see from their height.
-This framework should be able to extract characteristics from each time series (regardless of their length and nature) so that later clustering of time series can be done based on these characteristics.
-
-  This collection of packages is called [tydieverts](https://tidyverts.org/) and the book was written by Rob Hyndman, well-known in the circles of forecasting specialists, already the 3rd edition [Forecasting: Principles and Practice](https://otexts.com/fpp3/) in accordance with the evolution of packages.
-(By the way, statmodels likes to refer to this author in the help for their forecasting functions).
-  The concept of the tydiverts ecosystem is completely identical to the concept of the [tidyverse](https://www.tidyverse.org/) ecosystem and, accordingly, everything is compatible between these two families, which gives explosive performance and code readability.
-
-  Below is an example of forecasting a set of time series by a set of models based on the fable package
-
-```{r,message=FALSE,echo=T, results='hide'}
-pckgs <- c('fable','fable.prophet','tsibble','feasts')
-# install.packages(pckgs) # install packages of 'tidyverts' ecosystem
-lapply(X = c(pckgs,'tidyverse'), FUN = library, character.only = TRUE) # load 'tidyverts' + 'tidyverse' packages
-```
-
-```{r}
-# extract and filter multiple timeseries data frame from tsibble datasets
-data(tourism,package = 'tsibble')
-tourism_melb <- tourism %>% filter(Region == "Melbourne",State=="Victoria") %>% select(-Region,-State)
-tourism_melb # you can see "Key: Purpose" in title (4 time series groups:Business,Holiday,Visiting,Other), see tsibble docs about create key
-tourism_melb %>% autoplot(.vars = Trips) # plot multiple timeseries in on line of code
-train <- tourism_melb %>% filter_index(~'2015 Q4') # filter time series from start to 4Q 2015
-fit <- train %>% # create multiple AUTO-tuning models for each time series by tsibble key
-  model(
-    ets = ETS(Trips ~ trend("A")), # auto Exponential models (HOLT, HOLT-Winters,...etc)
-    arima = ARIMA(Trips), # auto ARIMA
-    snaive=SNAIVE(Trips), # seasonal NAIVE
-    #tslm=TSLM(log(Trips)~ trend() + season()),  # YOU MAY (UN)COMMENT ANY MODEL WITHOUT CODE CORRECTION BELOW!!! (regression with trend + seasonal)
-    theta=THETA(Trips), # theta model
-    prophet=prophet(Trips~ season("year", 4, type = "multiplicative"))
-    ) %>% 
-  mutate(combine=(ets+arima+snaive+prophet+theta)/5) # create model ensemble
-fit
-fc <- fit %>% forecast(h = "2 years") # create forecasts from each model for each timeseries
-fc
-fc %>% autoplot(tourism_melb) # plot forecast and actual values by one line of code
-ac <- fc %>% accuracy(data = tourism_melb,measures = list(mape=MAPE, rmse=RMSE)) %>% 
-  relocate(Purpose,.before = .model)%>% arrange(Purpose,rmse) # evaluate models accuracy by test period (>'2015 Q4')
-ac
-best_ac <- ac %>% group_by(Purpose) %>% arrange(rmse) %>% slice(1) %>% ungroup() # get best model for each time series by min(rmse)
-best_ac # we can see that for 'Business' and 'Holiday'  it prophet, for 'Other' and 'Visiting' - ARIMA 
-fc_bestmodels <- fc %>% inner_join(best_ac,by = c('Purpose','.model')) %>% tibble() %>% 
-  select(Purpose,  Quarter, frcst_val = .mean,.model) # get best forecast values
-fc_bestmodels
-```
-
-## Feature extraction for clustering or search unusual time series
-  Below is a small example of how to use the [feasts package](https://feasts.tidyverts.org/) extract characteristics from time series for their subsequent clustering or search for unusual examples after dimension compression
-  
-```{r}
-# https://robjhyndman.com/hyndsight/fbtsa/
-# Compute features
-tourism # 304 timeseries (key[304] in table title)
-tourism_features <- tourism %>% features(Trips, feature_set(pkgs="feasts"))
-tourism_features # 50(!!!) features extracted for each time series by 1 line of code
-# Unusual time series can be identified by first doing a principal components decomposition
-pcs <- tourism_features %>% select(-State, -Region, -Purpose) %>% prcomp(scale=TRUE) %>% augment(tourism_features) 
-pcs %>% ggplot(aes(x=.fittedPC1, y=.fittedPC2, col=Purpose)) + geom_point() + theme(aspect.ratio=1)
-# We can then identify some unusual series.
-unusual <- pcs %>% filter(.fittedPC1 > 10.5) %>% select(Region, State, Purpose, .fittedPC1, .fittedPC2)
-unusual
-# plot unusual time series by 1 line of code
-tourism %>% semi_join(unusual) %>% autoplot()
-```
-
-I wonder how many screens of code will be needed on python to repeat all this?
-**P.S.** All that python can offer in response at the moment it is just the equivalent of auto.arima in R [pmdarima](https://pypi.org/project/pmdarima/) with a funny phrase in its documentation ["making an even stronger case for why you don’t need R for data science"](https://alkaline-ml.com/pmdarima/)
-
-
-
 # List backlog
 
 Below is a list of points I might develop into full examples. Feel free
 to pick one and expand on it!
 
--   
+-   A point for python: Classes are easier to understand compared with
+    S3 as the membership definition is more transparently tied to the
+    class. Also figuring out which methods exist for a given class can
+    be challenging in R.
+
+-   Add to pandas index section the annoying part of assigning values to
+    a dataframe slice. See this
+    <https://stackoverflow.com/questions/20625582/how-to-deal-with-settingwithcopywarning-in-pandas>
 
 -   R has great utilities for package writing - roxygen2 for example.
 
