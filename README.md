@@ -897,7 +897,7 @@ Below is an example of forecasting a set of time series by a set of
 models based on the fable package
 
 ``` r
-pckgs <- c('fable','fable.prophet','tsibble','feasts')
+pckgs <- c('fable','fable.prophet','tsibble','feasts','urca') # 'urca' is Unit Root and Cointegration Tests package for auto.arima
 # install.packages(pckgs) # install packages of 'tidyverts' ecosystem
 lapply(X = c(pckgs,'tidyverse'), FUN = library, character.only = TRUE) # load 'tidyverts' + 'tidyverse' packages
 ```
@@ -946,14 +946,14 @@ fit <- train %>% # create multiple AUTO-tuning models for each time series by ts
 fit
 ```
 
-    ## # A mable: 4 x 7
-    ## # Key:     Purpose [4]
-    ##   Purpose           ets        arima   snaive   theta   prophet       combine
-    ##   <chr>         <model>      <model>  <model> <model>   <model>       <model>
-    ## 1 Business <ETS(A,A,A)> <NULL model> <SNAIVE> <THETA> <prophet> <COMBINATION>
-    ## 2 Holiday  <ETS(M,A,A)> <NULL model> <SNAIVE> <THETA> <prophet> <COMBINATION>
-    ## 3 Other    <ETS(M,A,N)> <NULL model> <SNAIVE> <THETA> <prophet> <COMBINATION>
-    ## 4 Visiting <ETS(A,A,A)> <NULL model> <SNAIVE> <THETA> <prophet> <COMBINATION>
+    ## A mable: 4 x 7
+    ## Key:     Purpose [4]
+    ## Purpose           ets                            arima   snaive   theta   prophet       combine
+    ## <chr>         <model>                          <model>  <model> <model>   <model>       <model>
+    ##   1 Business <ETS(A,A,A)> <ARIMA(0,0,1)(1,0,1)[4] w/ mean> <SNAIVE> <THETA> <prophet> <COMBINATION>
+    ##   2 Holiday  <ETS(M,A,A)>          <ARIMA(0,1,1) w/ drift> <SNAIVE> <THETA> <prophet> <COMBINATION>
+    ##   3 Other    <ETS(M,A,N)>          <ARIMA(0,1,1) w/ drift> <SNAIVE> <THETA> <prophet> <COMBINATION>
+    ##   4 Visiting <ETS(A,A,A)>         <ARIMA(1,1,1)(2,0,0)[4]> <SNAIVE> <THETA> <prophet> <COMBINATION>
 
 ``` r
 fc <- fit %>% forecast(h = "2 years") # create forecasts from each model for each timeseries
@@ -962,19 +962,19 @@ fc
 
     ## # A fable: 192 x 5 [1Q]
     ## # Key:     Purpose, .model [24]
-    ##    Purpose  .model Quarter        Trips .mean
-    ##    <chr>    <chr>    <qtr>       <dist> <dbl>
-    ##  1 Business ets    2016 Q1 N(470, 3380)  470.
-    ##  2 Business ets    2016 Q2 N(546, 3470)  546.
-    ##  3 Business ets    2016 Q3 N(562, 3560)  562.
-    ##  4 Business ets    2016 Q4 N(530, 3651)  530.
-    ##  5 Business ets    2017 Q1 N(475, 3741)  475.
-    ##  6 Business ets    2017 Q2 N(551, 3831)  551.
-    ##  7 Business ets    2017 Q3 N(567, 3922)  567.
-    ##  8 Business ets    2017 Q4 N(535, 4012)  535.
-    ##  9 Business arima  2016 Q1           NA   NA 
-    ## 10 Business arima  2016 Q2           NA   NA 
-    ## # … with 182 more rows
+    ## Purpose  .model Quarter        Trips .mean
+    ## <chr>    <chr>    <qtr>       <dist> <dbl>
+    ## 1 Business ets    2016 Q1 N(470, 3380)  470.
+    ## 2 Business ets    2016 Q2 N(546, 3470)  546.
+    ## 3 Business ets    2016 Q3 N(562, 3560)  562.
+    ## 4 Business ets    2016 Q4 N(530, 3651)  530.
+    ## 5 Business ets    2017 Q1 N(475, 3741)  475.
+    ## 6 Business ets    2017 Q2 N(551, 3831)  551.
+    ## 7 Business ets    2017 Q3 N(567, 3922)  567.
+    ## 8 Business ets    2017 Q4 N(535, 4012)  535.
+    ## 9 Business arima  2016 Q1 N(440, 3408)  440.
+    ## 10 Business arima  2016 Q2 N(496, 3864)  496.
+    ## # ... with 182 more rows
 
 ``` r
 fc %>% autoplot(tourism_melb) # plot forecast and actual values by one line of code
@@ -988,33 +988,33 @@ ac <- fc %>% accuracy(data = tourism_melb,measures = list(mape=MAPE, rmse=RMSE))
 ac
 ```
 
-    ## # A tibble: 24 x 5
-    ##    Purpose  .model  .type   mape  rmse
-    ##    <chr>    <chr>   <chr>  <dbl> <dbl>
-    ##  1 Business prophet Test   11.4   84.0
-    ##  2 Business snaive  Test   15.1  111. 
-    ##  3 Business ets     Test   15.2  116. 
-    ##  4 Business theta   Test   16.0  122. 
-    ##  5 Business arima   Test  NaN    NaN  
-    ##  6 Business combine Test  NaN    NaN  
-    ##  7 Holiday  prophet Test    7.27  72.4
-    ##  8 Holiday  ets     Test    7.78  76.7
-    ##  9 Holiday  theta   Test    7.91  84.3
-    ## 10 Holiday  snaive  Test    9.46  88.7
-    ## # … with 14 more rows
+    ## ## A tibble: 24 x 5
+    ## Purpose  .model  .type  mape  rmse
+    ## <chr>    <chr>   <chr> <dbl> <dbl>
+    ## 1 Business prophet Test  11.4   84.2
+    ## 2 Business snaive  Test  15.1  111. 
+    ## 3 Business ets     Test  15.2  116. 
+    ## 4 Business combine Test  15.2  117. 
+    ## 5 Business theta   Test  16.0  122. 
+    ## 6 Business arima   Test  22.2  160. 
+    ## 7 Holiday  prophet Test   7.27  72.2
+    ## 8 Holiday  combine Test   7.20  75.3
+    ## 9 Holiday  arima   Test   7.16  76.5
+    ## 10 Holiday  ets     Test   7.78  76.7
+    ## ## ... with 14 more rows
 
 ``` r
 best_ac <- ac %>% group_by(Purpose) %>% arrange(rmse) %>% slice(1) %>% ungroup() # get best model for each time series by min(rmse)
 best_ac # we can see that for 'Business' and 'Holiday'  it prophet, for 'Other' and 'Visiting' - ARIMA 
 ```
 
-    ## # A tibble: 4 x 5
-    ##   Purpose  .model  .type  mape  rmse
-    ##   <chr>    <chr>   <chr> <dbl> <dbl>
-    ## 1 Business prophet Test  11.4   84.0
-    ## 2 Holiday  prophet Test   7.27  72.4
-    ## 3 Other    ets     Test   7.60  14.1
-    ## 4 Visiting prophet Test  11.2  101.
+    ## ## A tibble: 4 x 5
+    ## Purpose  .model  .type  mape  rmse
+    ## <chr>    <chr>   <chr> <dbl> <dbl>
+    ## 1 Business prophet Test  11.4   84.2
+    ## 2 Holiday  prophet Test   7.27  72.2
+    ## 3 Other    arima   Test   6.71  12.1
+    ## 4 Visiting arima   Test   9.33  92.8
 
 ``` r
 fc_bestmodels <- fc %>% inner_join(best_ac,by = c('Purpose','.model')) %>% tibble() %>% 
