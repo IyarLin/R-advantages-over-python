@@ -1068,7 +1068,7 @@ tourism # 304 timeseries (key[304] in table title)
 
 ``` r
 tourism_features <- tourism %>% features(Trips, feature_set(pkgs="feasts"))
-tourism_features # 50(!!!) features extracted for each time series by 1 line of code
+tourism_features # 45 or more features extracted (depends on whether the library 'urca' is installed) for each time series by 1 line of code
 ```
 
     ## # A tibble: 304 x 45
