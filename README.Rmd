@@ -252,6 +252,18 @@ were moved to the column multi index. It prints nicely but also begs the questio
 which you'll have go search stack overflow of how do you rename those columns or
 select them by name. 
 
+Well what if you just want to perform several aggregations without grouping? Only way I found doing that was:
+
+```{python, eval=T}
+(
+  iris
+  .groupby(lambda x: 1)
+  .agg({'Sepal.Length':['mean', 'max'], 'Sepal.Width':'min'})
+)
+```
+
+
+
 ## Window functions
 
 ### Aggregation over a window

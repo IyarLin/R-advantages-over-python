@@ -1,7 +1,7 @@
 R advantages over python
 ================
 Iyar Lin
-05 July, 2021
+29 December, 2021
 
 -   [Motivation](#motivation)
     -   [How to contribute](#how-to-contribute)
@@ -283,8 +283,8 @@ not. When it’s ungrouped:
 ```
 
     ##       Sepal.Length  Sepal.Width
-    ## max       7.900000          NaN
     ## mean      5.843333          NaN
+    ## max       7.900000          NaN
     ## min            NaN          2.0
 
 We can see that the functions were stored in the index while the
@@ -314,6 +314,21 @@ Now the grouping variable levels occupy the row index while the
 functions and variables were moved to the column multi index. It prints
 nicely but also begs the question which you’ll have go search stack
 overflow of how do you rename those columns or select them by name.
+
+Well what if you just want to perform several aggregations without
+grouping? Only way I found doing that was:
+
+``` python
+(
+  iris
+  .groupby(lambda x: 1)
+  .agg({'Sepal.Length':['mean', 'max'], 'Sepal.Width':'min'})
+)
+```
+
+    ##   Sepal.Length      Sepal.Width
+    ##           mean  max         min
+    ## 1     5.843333  7.9         2.0
 
 ## Window functions
 
@@ -542,7 +557,7 @@ df <- tibble(s1=c(NA,NA,6,9,9),s2=c(NA,8,7,9,9))
 df %>% mutate(s3=coalesce(s1,s2,0))
 ```
 
-    ## # A tibble: 5 x 3
+    ## # A tibble: 5 × 3
     ##      s1    s2    s3
     ##   <dbl> <dbl> <dbl>
     ## 1    NA    NA     0
@@ -929,7 +944,7 @@ tourism_melb # you can see "Key: Purpose" in title (4 time series groups:Busines
 tourism_melb %>% autoplot(.vars = Trips) # plot multiple timeseries in on line of code
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-34-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-35-1.png)<!-- -->
 
 ``` r
 train <- tourism_melb %>% filter_index(~'2015 Q4') # filter time series from start to 4Q 2015
@@ -948,12 +963,13 @@ fit
 
     ## # A mable: 4 x 7
     ## # Key:     Purpose [4]
-    ##   Purpose           ets        arima   snaive   theta   prophet       combine
-    ##   <chr>         <model>      <model>  <model> <model>   <model>       <model>
-    ## 1 Business <ETS(A,A,A)> <NULL model> <SNAIVE> <THETA> <prophet> <COMBINATION>
-    ## 2 Holiday  <ETS(M,A,A)> <NULL model> <SNAIVE> <THETA> <prophet> <COMBINATION>
-    ## 3 Other    <ETS(M,A,N)> <NULL model> <SNAIVE> <THETA> <prophet> <COMBINATION>
-    ## 4 Visiting <ETS(A,A,A)> <NULL model> <SNAIVE> <THETA> <prophet> <COMBINATION>
+    ##   Purpose           ets                            arima   snaive   theta
+    ##   <chr>         <model>                          <model>  <model> <model>
+    ## 1 Business <ETS(A,A,A)> <ARIMA(1,0,0)(1,0,1)[4] w/ mean> <SNAIVE> <THETA>
+    ## 2 Holiday  <ETS(M,A,A)>          <ARIMA(0,1,1) w/ drift> <SNAIVE> <THETA>
+    ## 3 Other    <ETS(M,A,N)>          <ARIMA(0,1,1) w/ drift> <SNAIVE> <THETA>
+    ## 4 Visiting <ETS(A,A,A)>         <ARIMA(1,1,1)(2,0,0)[4]> <SNAIVE> <THETA>
+    ## # … with 2 more variables: prophet <model>, combine <model>
 
 ``` r
 fc <- fit %>% forecast(h = "2 years") # create forecasts from each model for each timeseries
@@ -972,15 +988,15 @@ fc
     ##  6 Business ets    2017 Q2 N(551, 3831)  551.
     ##  7 Business ets    2017 Q3 N(567, 3922)  567.
     ##  8 Business ets    2017 Q4 N(535, 4012)  535.
-    ##  9 Business arima  2016 Q1           NA   NA 
-    ## 10 Business arima  2016 Q2           NA   NA 
+    ##  9 Business arima  2016 Q1 N(445, 3476)  445.
+    ## 10 Business arima  2016 Q2 N(503, 3757)  503.
     ## # … with 182 more rows
 
 ``` r
 fc %>% autoplot(tourism_melb) # plot forecast and actual values by one line of code
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-36-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-37-1.png)<!-- -->
 
 ``` r
 ac <- fc %>% accuracy(data = tourism_melb,measures = list(mape=MAPE, rmse=RMSE)) %>% 
@@ -988,19 +1004,19 @@ ac <- fc %>% accuracy(data = tourism_melb,measures = list(mape=MAPE, rmse=RMSE))
 ac
 ```
 
-    ## # A tibble: 24 x 5
-    ##    Purpose  .model  .type   mape  rmse
-    ##    <chr>    <chr>   <chr>  <dbl> <dbl>
-    ##  1 Business prophet Test   11.4   84.0
-    ##  2 Business snaive  Test   15.1  111. 
-    ##  3 Business ets     Test   15.2  116. 
-    ##  4 Business theta   Test   16.0  122. 
-    ##  5 Business arima   Test  NaN    NaN  
-    ##  6 Business combine Test  NaN    NaN  
-    ##  7 Holiday  prophet Test    7.27  72.4
-    ##  8 Holiday  ets     Test    7.78  76.7
-    ##  9 Holiday  theta   Test    7.91  84.3
-    ## 10 Holiday  snaive  Test    9.46  88.7
+    ## # A tibble: 24 × 5
+    ##    Purpose  .model  .type  mape  rmse
+    ##    <chr>    <chr>   <chr> <dbl> <dbl>
+    ##  1 Business prophet Test  11.4   84.0
+    ##  2 Business snaive  Test  15.1  111. 
+    ##  3 Business ets     Test  15.2  116. 
+    ##  4 Business combine Test  15.1  117. 
+    ##  5 Business theta   Test  16.0  122. 
+    ##  6 Business arima   Test  21.7  157. 
+    ##  7 Holiday  prophet Test   7.27  72.4
+    ##  8 Holiday  combine Test   7.20  75.3
+    ##  9 Holiday  arima   Test   7.16  76.5
+    ## 10 Holiday  ets     Test   7.78  76.7
     ## # … with 14 more rows
 
 ``` r
@@ -1008,13 +1024,13 @@ best_ac <- ac %>% group_by(Purpose) %>% arrange(rmse) %>% slice(1) %>% ungroup()
 best_ac # we can see that for 'Business' and 'Holiday'  it prophet, for 'Other' and 'Visiting' - ARIMA 
 ```
 
-    ## # A tibble: 4 x 5
+    ## # A tibble: 4 × 5
     ##   Purpose  .model  .type  mape  rmse
     ##   <chr>    <chr>   <chr> <dbl> <dbl>
     ## 1 Business prophet Test  11.4   84.0
     ## 2 Holiday  prophet Test   7.27  72.4
-    ## 3 Other    ets     Test   7.60  14.1
-    ## 4 Visiting prophet Test  11.2  101.
+    ## 3 Other    arima   Test   6.71  12.1
+    ## 4 Visiting arima   Test   9.33  92.8
 
 ``` r
 fc_bestmodels <- fc %>% inner_join(best_ac,by = c('Purpose','.model')) %>% tibble() %>% 
@@ -1022,7 +1038,7 @@ fc_bestmodels <- fc %>% inner_join(best_ac,by = c('Purpose','.model')) %>% tibbl
 fc_bestmodels
 ```
 
-    ## # A tibble: 32 x 4
+    ## # A tibble: 32 × 4
     ##    Purpose  Quarter frcst_val .model 
     ##    <chr>      <qtr>     <dbl> <chr>  
     ##  1 Business 2016 Q1      478. prophet
@@ -1071,31 +1087,26 @@ tourism_features <- tourism %>% features(Trips, feature_set(pkgs="feasts"))
 tourism_features # 50(!!!) features extracted for each time series by 1 line of code
 ```
 
-    ## # A tibble: 304 x 45
-    ##    Region    State     Purpose trend_strength seasonal_strengt… seasonal_peak_y…
-    ##    <chr>     <chr>     <chr>            <dbl>             <dbl>            <dbl>
-    ##  1 Adelaide  South Au… Busine…          0.464             0.407                3
-    ##  2 Adelaide  South Au… Holiday          0.554             0.619                1
-    ##  3 Adelaide  South Au… Other            0.746             0.202                2
-    ##  4 Adelaide  South Au… Visiti…          0.435             0.452                1
-    ##  5 Adelaide… South Au… Busine…          0.464             0.179                3
-    ##  6 Adelaide… South Au… Holiday          0.528             0.296                2
-    ##  7 Adelaide… South Au… Other            0.593             0.404                2
-    ##  8 Adelaide… South Au… Visiti…          0.488             0.254                0
-    ##  9 Alice Sp… Northern… Busine…          0.534             0.251                0
-    ## 10 Alice Sp… Northern… Holiday          0.381             0.832                3
-    ## # … with 294 more rows, and 39 more variables: seasonal_trough_year <dbl>,
+    ## # A tibble: 304 × 51
+    ##    Region         State Purpose trend_strength seasonal_streng… seasonal_peak_y…
+    ##    <chr>          <chr> <chr>            <dbl>            <dbl>            <dbl>
+    ##  1 Adelaide       Sout… Busine…          0.464            0.407                3
+    ##  2 Adelaide       Sout… Holiday          0.554            0.619                1
+    ##  3 Adelaide       Sout… Other            0.746            0.202                2
+    ##  4 Adelaide       Sout… Visiti…          0.435            0.452                1
+    ##  5 Adelaide Hills Sout… Busine…          0.464            0.179                3
+    ##  6 Adelaide Hills Sout… Holiday          0.528            0.296                2
+    ##  7 Adelaide Hills Sout… Other            0.593            0.404                2
+    ##  8 Adelaide Hills Sout… Visiti…          0.488            0.254                0
+    ##  9 Alice Springs  Nort… Busine…          0.534            0.251                0
+    ## 10 Alice Springs  Nort… Holiday          0.381            0.832                3
+    ## # … with 294 more rows, and 45 more variables: seasonal_trough_year <dbl>,
     ## #   spikiness <dbl>, linearity <dbl>, curvature <dbl>, stl_e_acf1 <dbl>,
     ## #   stl_e_acf10 <dbl>, acf1 <dbl>, acf10 <dbl>, diff1_acf1 <dbl>,
     ## #   diff1_acf10 <dbl>, diff2_acf1 <dbl>, diff2_acf10 <dbl>, season_acf1 <dbl>,
     ## #   pacf5 <dbl>, diff1_pacf5 <dbl>, diff2_pacf5 <dbl>, season_pacf <dbl>,
     ## #   zero_run_mean <dbl>, nonzero_squared_cv <dbl>, zero_start_prop <dbl>,
-    ## #   zero_end_prop <dbl>, lambda_guerrero <dbl>, nsdiffs <int>, bp_stat <dbl>,
-    ## #   bp_pvalue <dbl>, lb_stat <dbl>, lb_pvalue <dbl>, var_tiled_var <dbl>,
-    ## #   var_tiled_mean <dbl>, shift_level_max <dbl>, shift_level_index <dbl>,
-    ## #   shift_var_max <dbl>, shift_var_index <dbl>, shift_kl_max <dbl>,
-    ## #   shift_kl_index <dbl>, spectral_entropy <dbl>, n_crossing_points <int>,
-    ## #   longest_flat_spot <int>, stat_arch_lm <dbl>
+    ## #   zero_end_prop <dbl>, lambda_guerrero <dbl>, kpss_stat <dbl>, …
 
 ``` r
 # Unusual time series can be identified by first doing a principal components decomposition
@@ -1103,7 +1114,7 @@ pcs <- tourism_features %>% select(-State, -Region, -Purpose) %>% prcomp(scale=T
 pcs %>% ggplot(aes(x=.fittedPC1, y=.fittedPC2, col=Purpose)) + geom_point() + theme(aspect.ratio=1)
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-40-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-41-1.png)<!-- -->
 
 ``` r
 # We can then identify some unusual series.
@@ -1113,7 +1124,7 @@ unusual <- pcs %>% filter(.fittedPC1 > 10.5) %>% select(Region, State, Purpose, 
 tourism %>% semi_join(unusual) %>% autoplot()
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-41-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-42-1.png)<!-- -->
 
 Achieving the same with python would’ve taken much more code and effort.
 
