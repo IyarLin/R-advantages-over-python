@@ -1,7 +1,7 @@
 R advantages over python
 ================
 Iyar Lin
-29 December, 2021
+15 January, 2022
 
 -   [Motivation](#motivation)
     -   [How to contribute](#how-to-contribute)
@@ -391,12 +391,22 @@ In dplyr it’s pretty straight forward:
 iris %>%
   arrange(Species, Sepal.Width) %>%
   group_by(Species) %>%
-  mutate(expanding_sepal_sum = sapply(1:n(), function(x) sum(Sepal.Length[1:x])))
+  mutate(expanding_sepal_sum = cumsum(Sepal.Length))
 ```
 
-Notice we don’t need to memorize any additional functions/methods. You
-find a solution using ubiquitous tools (e.g. sapply) and just plug it in
-the dplyr chain.
+Generally for a function `f` we can use sapply like so:
+
+``` r
+f <- function(x) median(x) + 1
+iris %>%
+  arrange(Species, Sepal.Width) %>%
+  group_by(Species) %>%
+  mutate(expanding_median_plus_1 = sapply(1:n(), function(x) f(Sepal.Length[1:x])))
+```
+
+Notice we don’t need to memorize any additional functions/methods. One
+finds a solution using ubiquitous tools (e.g. sapply) and just plugs it
+in the dplyr chain.
 
 In pandas we’ll have to search stack overflow to come up with the
 *expanding* method:
@@ -944,7 +954,7 @@ tourism_melb # you can see "Key: Purpose" in title (4 time series groups:Busines
 tourism_melb %>% autoplot(.vars = Trips) # plot multiple timeseries in on line of code
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-35-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-36-1.png)<!-- -->
 
 ``` r
 train <- tourism_melb %>% filter_index(~'2015 Q4') # filter time series from start to 4Q 2015
@@ -996,7 +1006,7 @@ fc
 fc %>% autoplot(tourism_melb) # plot forecast and actual values by one line of code
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-37-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-38-1.png)<!-- -->
 
 ``` r
 ac <- fc %>% accuracy(data = tourism_melb,measures = list(mape=MAPE, rmse=RMSE)) %>% 
@@ -1114,7 +1124,7 @@ pcs <- tourism_features %>% select(-State, -Region, -Purpose) %>% prcomp(scale=T
 pcs %>% ggplot(aes(x=.fittedPC1, y=.fittedPC2, col=Purpose)) + geom_point() + theme(aspect.ratio=1)
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-41-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-42-1.png)<!-- -->
 
 ``` r
 # We can then identify some unusual series.
@@ -1124,7 +1134,7 @@ unusual <- pcs %>% filter(.fittedPC1 > 10.5) %>% select(Region, State, Purpose, 
 tourism %>% semi_join(unusual) %>% autoplot()
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-42-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-43-1.png)<!-- -->
 
 Achieving the same with python would’ve taken much more code and effort.
 

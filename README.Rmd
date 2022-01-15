@@ -323,11 +323,21 @@ In dplyr it's pretty straight forward:
 iris %>%
   arrange(Species, Sepal.Width) %>%
   group_by(Species) %>%
-  mutate(expanding_sepal_sum = sapply(1:n(), function(x) sum(Sepal.Length[1:x])))
+  mutate(expanding_sepal_sum = cumsum(Sepal.Length))
 ```
 
-Notice we don't need to memorize any additional functions/methods. You find 
-a solution using ubiquitous tools (e.g. sapply) and just plug it in the dplyr 
+Generally for a function `f` we can use sapply like so:
+
+```{r}
+f <- function(x) median(x) + 1
+iris %>%
+  arrange(Species, Sepal.Width) %>%
+  group_by(Species) %>%
+  mutate(expanding_median_plus_1 = sapply(1:n(), function(x) f(Sepal.Length[1:x])))
+```
+
+Notice we don't need to memorize any additional functions/methods. One finds 
+a solution using ubiquitous tools (e.g. sapply) and just plugs it in the dplyr 
 chain.
 
 In pandas we'll have to search stack overflow to come up with the *expanding*
