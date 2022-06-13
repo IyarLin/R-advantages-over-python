@@ -1,7 +1,7 @@
 R advantages over python
 ================
 Iyar Lin
-15 January, 2022
+12 June, 2022
 
 -   [Motivation](#motivation)
     -   [How to contribute](#how-to-contribute)
@@ -61,8 +61,8 @@ Iyar Lin
 
 <br>
 
-*"don’t be fooled by the hype python’s got*  
-*R still R still is the tool you want"*
+*“don’t be fooled by the hype python’s got*  
+*R still R still is the tool you want”*
 
 ![dont be fooled](stuff/dont_be_fooled.gif)
 
@@ -104,7 +104,10 @@ confusing pandas is. I hope by the end of this section you’ll find merit
 in my hypothesis.
 
 <figure>
-<img src="stuff/Screen%20Shot%202021-04-18%20at%2021.44.41.png" width="500" alt="pandas vs dplyr questions on stack overflow" /><figcaption aria-hidden="true">pandas vs dplyr questions on stack overflow</figcaption>
+<img src="stuff/Screen%20Shot%202021-04-18%20at%2021.44.41.png"
+width="500" alt="pandas vs dplyr questions on stack overflow" />
+<figcaption aria-hidden="true">pandas vs dplyr questions on stack
+overflow</figcaption>
 </figure>
 
 <a name="aggregation"></a>
@@ -343,7 +346,7 @@ iris.assign(mean_sepal = lambda x: x.groupby('Species')['Sepal.Length'].transfor
 ```
 
 We can see that this requires a dedicated method (*transform*), compared
-with dplyr which only requires adding a group\_by:
+with dplyr which only requires adding a group_by:
 
 ``` r
 iris %>%
@@ -598,7 +601,7 @@ your code. See below how that looks like:
 ![autocompletion](stuff/autocompletion.gif)
 
 In pandas you pass strings when you select variables, use the *agg*,
-*sort\_values*, *query* and *groupby* methods. In all those cases - you
+*sort_values*, *query* and *groupby* methods. In all those cases - you
 don’t get variable autocompletion.
 
 ## When you learn dplyr you can also leverage data.table, spark, postgres and many others
@@ -651,7 +654,7 @@ steam](https://iyarlin.medium.com/data-table-speed-with-dplyr-syntax-yes-we-can-
 
 This one might be a bit subjective, but for me pandas index always seems
 like much more of nuisance than useful. I encourage the reader to check
-how many times they use the *reset\_index* method in their code. Other
+how many times they use the *reset_index* method in their code. Other
 than some niceties relating to how the data frame is printed (e.g. multi
 indeces, see [this](#multi_index) for example) I can’t think of a use
 case where an index is really needed.
@@ -706,7 +709,7 @@ debug a chunk of code. See an example below:
 
 <a name="previous_example"></a>
 
-![line\_by\_line](stuff/function_error.gif)
+![line_by_line](stuff/function_error.gif)
 
 In jupyter notebooks you’d have to copy each line separately to a new
 cell, fix indentation and run it. You can’t even just copy it to a
@@ -973,13 +976,12 @@ fit
 
     ## # A mable: 4 x 7
     ## # Key:     Purpose [4]
-    ##   Purpose           ets                            arima   snaive   theta
-    ##   <chr>         <model>                          <model>  <model> <model>
-    ## 1 Business <ETS(A,A,A)> <ARIMA(1,0,0)(1,0,1)[4] w/ mean> <SNAIVE> <THETA>
-    ## 2 Holiday  <ETS(M,A,A)>          <ARIMA(0,1,1) w/ drift> <SNAIVE> <THETA>
-    ## 3 Other    <ETS(M,A,N)>          <ARIMA(0,1,1) w/ drift> <SNAIVE> <THETA>
-    ## 4 Visiting <ETS(A,A,A)>         <ARIMA(1,1,1)(2,0,0)[4]> <SNAIVE> <THETA>
-    ## # … with 2 more variables: prophet <model>, combine <model>
+    ##   Purpose           ets        arima   snaive   theta   prophet       combine
+    ##   <chr>         <model>      <model>  <model> <model>   <model>       <model>
+    ## 1 Business <ETS(A,A,A)> <NULL model> <SNAIVE> <THETA> <prophet> <COMBINATION>
+    ## 2 Holiday  <ETS(M,A,A)> <NULL model> <SNAIVE> <THETA> <prophet> <COMBINATION>
+    ## 3 Other    <ETS(M,A,N)> <NULL model> <SNAIVE> <THETA> <prophet> <COMBINATION>
+    ## 4 Visiting <ETS(A,A,A)> <NULL model> <SNAIVE> <THETA> <prophet> <COMBINATION>
 
 ``` r
 fc <- fit %>% forecast(h = "2 years") # create forecasts from each model for each timeseries
@@ -998,8 +1000,8 @@ fc
     ##  6 Business ets    2017 Q2 N(551, 3831)  551.
     ##  7 Business ets    2017 Q3 N(567, 3922)  567.
     ##  8 Business ets    2017 Q4 N(535, 4012)  535.
-    ##  9 Business arima  2016 Q1 N(445, 3476)  445.
-    ## 10 Business arima  2016 Q2 N(503, 3757)  503.
+    ##  9 Business arima  2016 Q1           NA   NA 
+    ## 10 Business arima  2016 Q2           NA   NA 
     ## # … with 182 more rows
 
 ``` r
@@ -1015,18 +1017,18 @@ ac
 ```
 
     ## # A tibble: 24 × 5
-    ##    Purpose  .model  .type  mape  rmse
-    ##    <chr>    <chr>   <chr> <dbl> <dbl>
-    ##  1 Business prophet Test  11.4   84.0
-    ##  2 Business snaive  Test  15.1  111. 
-    ##  3 Business ets     Test  15.2  116. 
-    ##  4 Business combine Test  15.1  117. 
-    ##  5 Business theta   Test  16.0  122. 
-    ##  6 Business arima   Test  21.7  157. 
-    ##  7 Holiday  prophet Test   7.27  72.4
-    ##  8 Holiday  combine Test   7.20  75.3
-    ##  9 Holiday  arima   Test   7.16  76.5
-    ## 10 Holiday  ets     Test   7.78  76.7
+    ##    Purpose  .model  .type   mape  rmse
+    ##    <chr>    <chr>   <chr>  <dbl> <dbl>
+    ##  1 Business prophet Test   11.4   84.0
+    ##  2 Business snaive  Test   15.1  111. 
+    ##  3 Business ets     Test   15.2  116. 
+    ##  4 Business theta   Test   16.0  122. 
+    ##  5 Business arima   Test  NaN    NaN  
+    ##  6 Business combine Test  NaN    NaN  
+    ##  7 Holiday  prophet Test    7.27  72.4
+    ##  8 Holiday  ets     Test    7.78  76.7
+    ##  9 Holiday  theta   Test    7.91  84.3
+    ## 10 Holiday  snaive  Test    9.46  88.7
     ## # … with 14 more rows
 
 ``` r
@@ -1039,8 +1041,8 @@ best_ac # we can see that for 'Business' and 'Holiday'  it prophet, for 'Other' 
     ##   <chr>    <chr>   <chr> <dbl> <dbl>
     ## 1 Business prophet Test  11.4   84.0
     ## 2 Holiday  prophet Test   7.27  72.4
-    ## 3 Other    arima   Test   6.71  12.1
-    ## 4 Visiting arima   Test   9.33  92.8
+    ## 3 Other    ets     Test   7.60  14.1
+    ## 4 Visiting prophet Test  11.2  101.
 
 ``` r
 fc_bestmodels <- fc %>% inner_join(best_ac,by = c('Purpose','.model')) %>% tibble() %>% 
@@ -1097,7 +1099,7 @@ tourism_features <- tourism %>% features(Trips, feature_set(pkgs="feasts"))
 tourism_features # 50(!!!) features extracted for each time series by 1 line of code
 ```
 
-    ## # A tibble: 304 × 51
+    ## # A tibble: 304 × 45
     ##    Region         State Purpose trend_strength seasonal_streng… seasonal_peak_y…
     ##    <chr>          <chr> <chr>            <dbl>            <dbl>            <dbl>
     ##  1 Adelaide       Sout… Busine…          0.464            0.407                3
@@ -1110,13 +1112,13 @@ tourism_features # 50(!!!) features extracted for each time series by 1 line of 
     ##  8 Adelaide Hills Sout… Visiti…          0.488            0.254                0
     ##  9 Alice Springs  Nort… Busine…          0.534            0.251                0
     ## 10 Alice Springs  Nort… Holiday          0.381            0.832                3
-    ## # … with 294 more rows, and 45 more variables: seasonal_trough_year <dbl>,
+    ## # … with 294 more rows, and 39 more variables: seasonal_trough_year <dbl>,
     ## #   spikiness <dbl>, linearity <dbl>, curvature <dbl>, stl_e_acf1 <dbl>,
     ## #   stl_e_acf10 <dbl>, acf1 <dbl>, acf10 <dbl>, diff1_acf1 <dbl>,
     ## #   diff1_acf10 <dbl>, diff2_acf1 <dbl>, diff2_acf10 <dbl>, season_acf1 <dbl>,
     ## #   pacf5 <dbl>, diff1_pacf5 <dbl>, diff2_pacf5 <dbl>, season_pacf <dbl>,
     ## #   zero_run_mean <dbl>, nonzero_squared_cv <dbl>, zero_start_prop <dbl>,
-    ## #   zero_end_prop <dbl>, lambda_guerrero <dbl>, kpss_stat <dbl>, …
+    ## #   zero_end_prop <dbl>, lambda_guerrero <dbl>, nsdiffs <int>, bp_stat <dbl>, …
 
 ``` r
 # Unusual time series can be identified by first doing a principal components decomposition
@@ -1301,7 +1303,7 @@ list(compress(valueVector, greaterThan2))
 Even that solution is pretty cumbersome compared with the R native way
 of doing it.
 
-Alternatively, one could use numpy to enjoy vectorization:
+One has to use numpy to enjoy the same functionality:
 
 ``` python
 import numpy as np
@@ -1312,28 +1314,6 @@ valueVector[greaterThan2]
 ```
 
     ## array(['D', 'E', 'F'], dtype='<U1')
-
-Do note however that numpy can’t help you if the vector you’re working
-with is made up of different types of elements (e.g. strings and
-numbers). In R you can use lists and still enjoy vectorization:
-
-``` r
-valueVector <- list("a", 1, c(1,2,3), "wow", list("sweet", 2))
-valueVector[greaterThan2]
-```
-
-    ## [[1]]
-    ## [1] 1 2 3
-    ## 
-    ## [[2]]
-    ## [1] "wow"
-    ## 
-    ## [[3]]
-    ## [[3]][[1]]
-    ## [1] "sweet"
-    ## 
-    ## [[3]][[2]]
-    ## [1] 2
 
 <a name="python_better_than_r"></a>
 
