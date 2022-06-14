@@ -1,13 +1,15 @@
 R advantages over python
 ================
 Iyar Lin
-12 June, 2022
+14 June, 2022
 
 -   [Motivation](#motivation)
     -   [How to contribute](#how-to-contribute)
 -   [Working with dplyr is much faster than
     pandas](#working-with-dplyr-is-much-faster-than-pandas)
     -   [Aggregation](#aggregation)
+        -   [Aggregation over multiple
+            columns](#aggregation-over-multiple-columns)
         -   [Multiple input variables (weighted average
             example)](#multiple-input-variables-weighted-average-example)
         -   [Multiple functions on multiple input
@@ -82,7 +84,7 @@ them in this repo I try to avoid:
 
 I’m adding examples to this repo as I encounter them. There are areas
 such as dashboards and apps, advanced statistics or production
-environemnts with which I’m less familiar with. If you’d like to add
+environments with which I’m less familiar with. If you’d like to add
 examples, including where python has the edge over R (there’s a small
 [section](#python_better_than_r) for that) feel free to add them to this
 README and open a pull request.
@@ -162,6 +164,39 @@ DataFrame method one could skip the *agg* method altogether using:
 ``` python
 iris.groupby('Species')['Sepal.Length'].mean()
 ```
+
+The above demonstrated again how confusing pandas can be with all those
+different ways of doing the same thing.
+
+### Aggregation over multiple columns
+
+Let’s say we’d like to calculate the mean over Sepal.Length and median
+over Sepal.Width. In dplyr it’s simple enough:
+
+``` r
+iris %>% summarise(mean_sepal_length = mean(Sepal.Length), 
+                   median_sepal_width = median(Sepal.Width))
+```
+
+When we try something similar in pandas we get some weird results:
+
+``` python
+iris.agg(mean_sepal_length = ('Sepal.Length','mean'), median_sepal_width = ('Sepal.Width','median'))
+```
+
+After quite a while of fiddling I was able to come up with a hack where
+we create a fake grouping to make the result behave:
+
+``` python
+(
+  iris
+  .groupby(lambda x: 1)
+  .agg(mean_sepal_length = ('Sepal.Length','mean'), 
+  median_sepal_width = ('Sepal.Width','median'))
+)
+```
+
+When using the dictionary input we can try:
 
 ### Multiple input variables (weighted average example)
 
@@ -602,7 +637,7 @@ your code. See below how that looks like:
 
 In pandas you pass strings when you select variables, use the *agg*,
 *sort_values*, *query* and *groupby* methods. In all those cases - you
-don’t get variable autocompletion.
+don’t get variable auto-completion.
 
 ## When you learn dplyr you can also leverage data.table, spark, postgres and many others
 
@@ -611,7 +646,7 @@ and remote data bases) you’ll have to learn another package to tackle
 them.
 
 Dplyr users however can use the same syntax to tackle many use cases
-using various other languages as backends. Granted, for advanced usage
+using various other languages as back-ends. Granted, for advanced usage
 one would probably have to resort to more dedicated API’s or use the
 native language itself. But for the usual use cases of filtering,
 selecting, aggregating etc using dplyr syntax should work fine.
@@ -683,13 +718,13 @@ We can see that:
 
 1.  When calling functions you get documentation of arguments on the go,
     both overview and detailed in pop-up windows  
-2.  Used arguments don’t show up in the autocompletion (after setting x
+2.  Used arguments don’t show up in the auto-completion (after setting x
     it doesn’t show up again)  
 3.  When calling functions in a dplyr chain you have the data frame
     variables listed and autocompleted (thanks to data masking)
 
-In contrast see below the autocompletion results for pandas DataFrame in
-jupyter notebooks:
+In contrast see below the auto-completion results for pandas DataFrame
+in jupyter notebooks:
 
 ![Jupyter notebook autocompletion for padnas
 DataFrame](stuff/jupyter_autocompletion.png) We can see you get a long
@@ -957,7 +992,7 @@ tourism_melb # you can see "Key: Purpose" in title (4 time series groups:Busines
 tourism_melb %>% autoplot(.vars = Trips) # plot multiple timeseries in on line of code
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-36-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-39-1.png)<!-- -->
 
 ``` r
 train <- tourism_melb %>% filter_index(~'2015 Q4') # filter time series from start to 4Q 2015
@@ -1008,7 +1043,7 @@ fc
 fc %>% autoplot(tourism_melb) # plot forecast and actual values by one line of code
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-38-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-41-1.png)<!-- -->
 
 ``` r
 ac <- fc %>% accuracy(data = tourism_melb,measures = list(mape=MAPE, rmse=RMSE)) %>% 
@@ -1126,7 +1161,7 @@ pcs <- tourism_features %>% select(-State, -Region, -Purpose) %>% prcomp(scale=T
 pcs %>% ggplot(aes(x=.fittedPC1, y=.fittedPC2, col=Purpose)) + geom_point() + theme(aspect.ratio=1)
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-42-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-45-1.png)<!-- -->
 
 ``` r
 # We can then identify some unusual series.
@@ -1136,7 +1171,7 @@ unusual <- pcs %>% filter(.fittedPC1 > 10.5) %>% select(Region, State, Purpose, 
 tourism %>% semi_join(unusual) %>% autoplot()
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-43-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-46-1.png)<!-- -->
 
 Achieving the same with python would’ve taken much more code and effort.
 
@@ -1212,8 +1247,9 @@ You can see some of the confusion manifested in this [stack
 overflow](https://stackoverflow.com/questions/41573587/what-is-the-difference-between-venv-pyvenv-pyenv-virtualenv-virtualenvwrappe)
 question.
 
-The *packrat* package in R fulfills the same functionality but one
-rarely **has** to use it. It’s more for maintaining reproducibility.
+The *packrat* or *renv* packages in R fulfills the same functionality
+but one rarely **has** to use them. It’s more for maintaining
+reproducibility.
 
 ## Documentation
 
@@ -1394,4 +1430,4 @@ to pick one and expand on it!
     data.table and many others. While some functionality may not be
     supported, it can still save a lot of time.
 
--   test editing tools in Rstudio are superb (find and replcae etc)
+-   test editing tools in Rstudio are superb (find and replace etc)
