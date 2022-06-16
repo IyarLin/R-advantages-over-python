@@ -77,8 +77,7 @@ This section will demonstrate that pandas syntax really
 contrasts with the principle from Zen of python: "There should be one— and preferably 
 only one —obvious way to do it".
 
-We'll start with a simple example: calculate the mean Sepal length within each
-species in the iris dataset. 
+We'll start with a simple example: calculate the mean Sepal length within each species in the iris dataset. 
 
 In dplyr:
 
@@ -107,57 +106,19 @@ We can avoid the additional *rename* by passing a tuple to *agg*:
 iris.groupby('Species').agg(mean_length = ('Sepal.Length', 'mean'))
 ```
 
-When aggregating over a single column we could pass a string rather than a tuple
-like so:
+When aggregating over a single column we could pass a string rather than a tuple like so:
 
 ```{python}
 iris.groupby('Species')['Sepal.Length'].agg(mean_length = 'mean')
 ```
 
-When aggregating over a single column with a function that is also a DataFrame
-method one could skip the *agg* method altogether using:
+When aggregating over a single column with a function that is also a DataFrame method one could skip the *agg* method altogether using:
 
 ```{python}
 iris.groupby('Species')['Sepal.Length'].mean()
 ```
 
 The above demonstrated again how confusing pandas can be with all those different ways of doing the same thing.
-
-### Aggregation over multiple columns
-
-Let's say we'd like to calculate the mean over Sepal.Length and median
-over Sepal.Width. In dplyr it's simple enough:
-
-```{r}
-iris %>% summarise(mean_sepal_length = mean(Sepal.Length), 
-                   median_sepal_width = median(Sepal.Width))
-```
-
-When we try something similar in pandas we get some weird results:
-
-```{python}
-iris.agg(mean_sepal_length = ('Sepal.Length','mean'), median_sepal_width = ('Sepal.Width','median'))
-```
-
-After quite a while of fiddling I was able to come up with a hack where we create a fake grouping to make the result behave:
-
-```{python}
-(
-  iris
-  .groupby(lambda x: 1)
-  .agg(mean_sepal_length = ('Sepal.Length','mean'), 
-  median_sepal_width = ('Sepal.Width','median'))
-)
-```
-
-
-
-
-
-When using the dictionary input we can try:
-
-
-
 
 ### Multiple input variables (weighted average example)
 
@@ -257,11 +218,30 @@ overflow [question](https://stackoverflow.com/questions/47226407/pandas-groupby-
 
 ### Multiple functions on multiple input variables
 
-Let's say we'd like to calculate the mean and max sepal length, and the min sepal 
-width. 
+Let's say we'd like to calculate the mean and max sepal length, and the min sepal width. 
 
-pandas has a very different behavior when the data frame is grouped or not. When 
-it's ungrouped:
+In dplyr it's easy enough:
+
+```{r, eval=TRUE}
+iris %>% summarise(
+  sepal_length_mean = mean(Sepal.Length), 
+  sepal_length_max = max(Sepal.Length), 
+  sepal_width_min = min(Sepal.Width))
+```
+
+If you were to group it by Species for example, you'd get the exact same data frame, only this time with a row per each species like you'd expect:
+
+```{r, eval=TRUE}
+iris %>% 
+  group_by(Species) %>% 
+  summarise(
+  sepal_length_mean = mean(Sepal.Length), 
+  sepal_length_max = max(Sepal.Length), 
+  sepal_width_min = min(Sepal.Width))
+```
+
+
+In pandas you get a very different behavior when the data frame is grouped or not. When it's ungrouped:
 
 ```{python, eval=T}
 (
@@ -270,8 +250,7 @@ it's ungrouped:
 )
 ```
 
-We can see that the functions were stored in the index while the variables on 
-which they were operated on are in the columns. This results in all those NaNs.
+We can see that the function names were stored in the index while the variables on which they were operated on are in the columns. This results in all those pesky NaNs.
 
 If we were to apply those functions to a grouped data frame however:
 
@@ -284,11 +263,7 @@ If we were to apply those functions to a grouped data frame however:
   .agg({'Sepal.Length':['mean', 'max'], 'Sepal.Width':'min'})
 )
 ```
-
-Now the grouping variable levels occupy the row index while the functions and variables
-were moved to the column multi index. It prints nicely but also begs the question
-which you'll have go search stack overflow of how do you rename those columns or
-select them by name. 
+Now the grouping variable levels occupy the row index while the functions and variables were moved to the column multi index. It prints nicely but also begs the question which you'll have go search stack overflow of how do you rename those columns or select them by name. 
 
 Well what if you just want to perform several aggregations without grouping? Only way I found doing that was:
 

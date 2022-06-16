@@ -1,15 +1,13 @@
 R advantages over python
 ================
 Iyar Lin
-14 June, 2022
+16 June, 2022
 
 -   [Motivation](#motivation)
     -   [How to contribute](#how-to-contribute)
 -   [Working with dplyr is much faster than
     pandas](#working-with-dplyr-is-much-faster-than-pandas)
     -   [Aggregation](#aggregation)
-        -   [Aggregation over multiple
-            columns](#aggregation-over-multiple-columns)
         -   [Multiple input variables (weighted average
             example)](#multiple-input-variables-weighted-average-example)
         -   [Multiple functions on multiple input
@@ -168,36 +166,6 @@ iris.groupby('Species')['Sepal.Length'].mean()
 The above demonstrated again how confusing pandas can be with all those
 different ways of doing the same thing.
 
-### Aggregation over multiple columns
-
-Let’s say we’d like to calculate the mean over Sepal.Length and median
-over Sepal.Width. In dplyr it’s simple enough:
-
-``` r
-iris %>% summarise(mean_sepal_length = mean(Sepal.Length), 
-                   median_sepal_width = median(Sepal.Width))
-```
-
-When we try something similar in pandas we get some weird results:
-
-``` python
-iris.agg(mean_sepal_length = ('Sepal.Length','mean'), median_sepal_width = ('Sepal.Width','median'))
-```
-
-After quite a while of fiddling I was able to come up with a hack where
-we create a fake grouping to make the result behave:
-
-``` python
-(
-  iris
-  .groupby(lambda x: 1)
-  .agg(mean_sepal_length = ('Sepal.Length','mean'), 
-  median_sepal_width = ('Sepal.Width','median'))
-)
-```
-
-When using the dictionary input we can try:
-
 ### Multiple input variables (weighted average example)
 
 Now let’s say we’d like to use a weighted average (with sepal width as
@@ -310,8 +278,40 @@ on that).
 Let’s say we’d like to calculate the mean and max sepal length, and the
 min sepal width.
 
-pandas has a very different behavior when the data frame is grouped or
-not. When it’s ungrouped:
+In dplyr it’s easy enough:
+
+``` r
+iris %>% summarise(
+  sepal_length_mean = mean(Sepal.Length), 
+  sepal_length_max = max(Sepal.Length), 
+  sepal_width_min = min(Sepal.Width))
+```
+
+    ##   sepal_length_mean sepal_length_max sepal_width_min
+    ## 1          5.843333              7.9               2
+
+If you were to group it by Species for example, you’d get the exact same
+data frame, only this time with a row per each species like you’d
+expect:
+
+``` r
+iris %>% 
+  group_by(Species) %>% 
+  summarise(
+  sepal_length_mean = mean(Sepal.Length), 
+  sepal_length_max = max(Sepal.Length), 
+  sepal_width_min = min(Sepal.Width))
+```
+
+    ## # A tibble: 3 × 4
+    ##   Species    sepal_length_mean sepal_length_max sepal_width_min
+    ##   <chr>                  <dbl>            <dbl>           <dbl>
+    ## 1 setosa                  5.01              5.8             2.3
+    ## 2 versicolor              5.94              7               2  
+    ## 3 virginica               6.59              7.9             2.2
+
+In pandas you get a very different behavior when the data frame is
+grouped or not. When it’s ungrouped:
 
 ``` python
 (
@@ -325,9 +325,9 @@ not. When it’s ungrouped:
     ## max       7.900000          NaN
     ## min            NaN          2.0
 
-We can see that the functions were stored in the index while the
+We can see that the function names were stored in the index while the
 variables on which they were operated on are in the columns. This
-results in all those NaNs.
+results in all those pesky NaNs.
 
 If we were to apply those functions to a grouped data frame however:
 
@@ -992,7 +992,7 @@ tourism_melb # you can see "Key: Purpose" in title (4 time series groups:Busines
 tourism_melb %>% autoplot(.vars = Trips) # plot multiple timeseries in on line of code
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-39-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-38-1.png)<!-- -->
 
 ``` r
 train <- tourism_melb %>% filter_index(~'2015 Q4') # filter time series from start to 4Q 2015
@@ -1043,7 +1043,7 @@ fc
 fc %>% autoplot(tourism_melb) # plot forecast and actual values by one line of code
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-41-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-40-1.png)<!-- -->
 
 ``` r
 ac <- fc %>% accuracy(data = tourism_melb,measures = list(mape=MAPE, rmse=RMSE)) %>% 
@@ -1161,7 +1161,7 @@ pcs <- tourism_features %>% select(-State, -Region, -Purpose) %>% prcomp(scale=T
 pcs %>% ggplot(aes(x=.fittedPC1, y=.fittedPC2, col=Purpose)) + geom_point() + theme(aspect.ratio=1)
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-45-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-44-1.png)<!-- -->
 
 ``` r
 # We can then identify some unusual series.
@@ -1171,7 +1171,7 @@ unusual <- pcs %>% filter(.fittedPC1 > 10.5) %>% select(Region, State, Purpose, 
 tourism %>% semi_join(unusual) %>% autoplot()
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-46-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-45-1.png)<!-- -->
 
 Achieving the same with python would’ve taken much more code and effort.
 
