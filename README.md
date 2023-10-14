@@ -944,14 +944,14 @@ series (regardless of their length and nature) so that later clustering
 of time series can be done based on these characteristics.
 
 This collection of packages is called
-[tydieverts](https://tidyverts.org/) and the book was written by Rob
+[tidyverts](https://tidyverts.org/) and the book was written by Rob
 Hyndman, well-known in the circles of forecasting specialists, already
 the 3rd edition [Forecasting: Principles and
 Practice](https://otexts.com/fpp3/) in accordance with the evolution of
 packages. (By the way, statmodels likes to refer to this author in the
 help for their forecasting functions).
 
-The concept of the tydiverts ecosystem is completely identical to the
+The concept of the tidyverts ecosystem is completely identical to the
 concept of the [tidyverse](https://www.tidyverse.org/) ecosystem and,
 accordingly, everything is compatible between these two families, which
 gives explosive performance and code readability.
